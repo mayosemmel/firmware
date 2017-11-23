@@ -23,7 +23,6 @@ wifiDelIface() {
 	grep 'config wifi-iface' /etc/config/wireless | sed -n -e "s/.*'\([^']*\)'.*/\1/p" | while read -r line ; do
 		uci -q delete "wireless.$line"
 	done
-	uci -q commit wireless
 
 	return 0
 }
@@ -60,7 +59,6 @@ wifiAddPhy() {
 			set wireless.${radio}.legacy_rates='0'
 		__EOF__
 	fi
-	uci commit wireless
 
 	echo "${radio}"
 	return 0
@@ -115,13 +113,11 @@ wifiAddAdHocMesh() {
 		set wireless.${iface}.ssid='${essid}'
 		set wireless.${iface}.mcast_rate='6000'
 		set wireless.${iface}.encryption='none'
-		commit wireless
 
 		set network.${iface}='interface'
 		set network.${iface}.mtu='1528'
 		set network.${iface}.proto='batadv'
 		set network.${iface}.mesh='bat0'
-		commit network
 	__EOF__
 
 	echo "${iface}"
@@ -156,7 +152,6 @@ wifiAddAP() {
 		set wireless.${iface}.encryption='none'
 		set wireless.${iface}.hidden='${hidden}'
 
-		commit wireless
 	__EOF__
 
 	echo "${iface}"
@@ -183,7 +178,6 @@ wifiAddSta() {
 		set wireless.${iface}.mode='sta'
 		set wireless.${iface}.ssid='${essid}'
 
-		commit wireless
 	__EOF__
 	
 	echo "${iface}"
@@ -214,13 +208,11 @@ wifiAddMesh() {
 		set wireless.${iface}.mesh_id='${mesh_id}'
 		set wireless.${iface}.encryption='none'
 		set wireless.${iface}.mesh_fwding=0
-		commit wireless
 
 		set network.${iface}='interface'
 		set network.${iface}.mtu='1528'
 		set network.${iface}.proto='batadv'
 		set network.${iface}.mesh='bat0'
-		commit network
 	__EOF__
 
 	echo "${iface}"
