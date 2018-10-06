@@ -360,6 +360,12 @@ configure() {
         uci set babeld.$name=interface
         uci set babeld.$name.ifname=$name
         uci set babeld.$name.type=$type
+
+        # set rxcost
+        if uci -q get gateway.$name.rxcost; then
+            rxcost=$(uci get gateway.$name.rxcost)
+            uci set babeld.$name.rxcost=$rxcost
+        fi
     }
 
     config_load gateway
@@ -455,6 +461,12 @@ configure() {
         uci set babeld.$name=interface
         uci set babeld.$name.ifname="$name"
         uci set babeld.$name.type='tunnel'
+
+        # set rxcost
+        if uci -q get gateway.$name.rxcost; then
+            rxcost=$(uci get gateway.$name.rxcost)
+            uci set babeld.$name.rxcost=$rxcost
+        fi
     }
 
     config_load gateway
