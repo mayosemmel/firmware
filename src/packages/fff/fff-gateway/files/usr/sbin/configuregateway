@@ -325,6 +325,13 @@ configure() {
             type=wired
         fi
 
+        # get rxcost
+        if uci -q get gateway.$name.rxcost; then
+            rxcost=$(uci get gateway.$name.rxcost)
+        else
+            rxcost=96
+        fi
+
         # add interface
         uci set network.$name=interface
         uci set network.$name.proto=static
@@ -360,12 +367,7 @@ configure() {
         uci set babeld.$name=interface
         uci set babeld.$name.ifname=$name
         uci set babeld.$name.type=$type
-
-        # set rxcost
-        if uci -q get gateway.$name.rxcost; then
-            rxcost=$(uci get gateway.$name.rxcost)
-            uci set babeld.$name.rxcost=$rxcost
-        fi
+        uci set babeld.$name.rxcost=$rxcost
     }
 
     config_load gateway
@@ -382,6 +384,13 @@ configure() {
         if echo $name | grep cfg > /dev/null; then
             echo "ERROR: name $name is invalid for wireguardpeer!"
             return
+        fi
+
+        # get rxcost
+        if uci -q get gateway.$name.rxcost; then
+            rxcost=$(uci get gateway.$name.rxcost)
+        else
+            rxcost=16384
         fi
 
         # add interface
@@ -461,12 +470,7 @@ configure() {
         uci set babeld.$name=interface
         uci set babeld.$name.ifname="$name"
         uci set babeld.$name.type='tunnel'
-
-        # set rxcost
-        if uci -q get gateway.$name.rxcost; then
-            rxcost=$(uci get gateway.$name.rxcost)
-            uci set babeld.$name.rxcost=$rxcost
-        fi
+        uci set babeld.$name.rxcost=$rxcost
     }
 
     config_load gateway
