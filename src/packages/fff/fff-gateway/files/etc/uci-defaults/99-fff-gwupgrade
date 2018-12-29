@@ -1,7 +1,0 @@
-#!/bin/sh
-# License GPLv3
-
-cat >> /etc/sysupgrade.conf <<-__EOF__
-/etc/config/gateway
-/etc/hoodfile
-__EOF__
