@@ -396,6 +396,7 @@ configure() {
         # add interface
         uci set network.$name=interface
         uci set network.$name.proto=wireguard
+        uci set network.$name.fwmark='0xc8'
         if uci -q get gateway.$name.private_key > /dev/null; then
             uci set network.$name.private_key="$(uci get gateway.$name.private_key)"
         else
