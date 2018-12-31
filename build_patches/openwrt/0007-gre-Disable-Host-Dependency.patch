@@ -1,0 +1,47 @@
+From 57ff196496d90359e16a555a22c0a4a4e0ec4e55 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fabian=20Bl=C3=A4se?= <fabian@blaese.de>
+Date: Mon, 31 Dec 2018 00:55:31 +0100
+Subject: [PATCH] gre: Disable Host Dependency
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+A tunnel cannot be set up, if the peer configured is unreachable for the
+route when the tunnel is set up, because adding host dependency fails.
+
+As already stated when this dependency was disabled for wireguard, it
+seems to be somehow broken for IPv6 peers as well.
+
+Because it is not necessary for us anyway, host dependency is disabled
+for gre with this patch.
+
+Signed-off-by: Fabian Bläse <fabian@blaese.de>
+---
+ package/network/config/gre/files/gre.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/package/network/config/gre/files/gre.sh b/package/network/config/gre/files/gre.sh
+index e604bfb259..181628e27d 100755
+--- a/package/network/config/gre/files/gre.sh
++++ b/package/network/config/gre/files/gre.sh
+@@ -76,7 +76,7 @@ gre_setup() {
+ 		break
+ 	done
+ 
+-	( proto_add_host_dependency "$cfg" "$peeraddr" "$tunlink" )
++	#( proto_add_host_dependency "$cfg" "$peeraddr" "$tunlink" )
+ 
+ 	[ -z "$ipaddr" ] && {
+ 		local wanif="$tunlink"
+@@ -153,7 +153,7 @@ grev6_setup() {
+ 		break
+ 	done
+ 
+-	( proto_add_host_dependency "$cfg" "$peer6addr" "$tunlink" )
++	#( proto_add_host_dependency "$cfg" "$peer6addr" "$tunlink" )
+ 
+ 	[ -z "$ip6addr" ] && {
+ 		local wanif="$tunlink"
+-- 
+2.11.0
+
