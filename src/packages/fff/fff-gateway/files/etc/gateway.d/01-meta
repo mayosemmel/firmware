@@ -1,27 +1,26 @@
 configure() {
-    ## set hostname
-    if uci -q get gateway.@gateway[0].name; then
-        uci -q set system.@system[0].hostname=$(uci get gateway.@gateway[0].name)
-    else
-        echo "WARNING: No gateway name set!"
-    fi
+	## set hostname
+	if uci -q get gateway.@gateway[0].name; then
+		uci -q set system.@system[0].hostname=$(uci get gateway.@gateway[0].name)
+	else
+		echo "WARNING: No gateway name set!"
+	fi
 
+	## set location
+	if uci -q get gateway.@gateway[0].latitude && uci -q get gateway.@gateway[0].longitude; then
+		uci -q set fff.system.latitude='$(uci -q get gateway.@gateway[0].latitude)'
+		uci -q set fff.system.longitude='$(uci -q get gateway.@gateway[0].longitude)'
+	else
+		echo "WARNING: No gateway location set!"
+	fi
 
-    ## set location
-    if uci -q get gateway.@gateway[0].latitude && uci -q get gateway.@gateway[0].longitude; then
-        uci -q set fff.system.latitude='$(uci -q get gateway.@gateway[0].latitude)'
-        uci -q set fff.system.longitude='$(uci -q get gateway.@gateway[0].longitude)'
-    else
-        echo "WARNING: No gateway location set!"
-    fi
-
-    ## hoodname
-    if hood=$(uci -q get gateway.@gateway[0].hoodname); then
-        echo "Setting hood name: $hood"
-        uci -q set "system.@system[0].hood=$hood"
-    else
-        echo "WARNING: No hoodname set!"
-    fi
+	## hoodname
+	if hood=$(uci -q get gateway.@gateway[0].hoodname); then
+		echo "Setting hood name: $hood"
+		uci -q set "system.@system[0].hood=$hood"
+	else
+		echo "WARNING: No hoodname set!"
+	fi
 }
 
 apply() {
@@ -31,6 +30,6 @@ apply() {
 }
 
 revert() {
-    uci revert system
-    uci revert fff
+	uci revert system
+	uci revert fff
 }
