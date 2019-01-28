@@ -1,0 +1,44 @@
+configure() {
+	if essid=$(uci -q get gateway.@client[0].essid); then
+		if ! wifiDelIface; then
+			echo "Can't delete current wifi setup"
+			exit 1
+		fi
+
+		if chan2ghz=$(uci -q get gateway.@client[0].chan2ghz); then
+			for phy in $(iw phy | awk '/^Wiphy/{ print $2 }'); do
+				radio="$(wifiAddPhyCond "$phy" "2" "$chan2ghz")"
+
+				if ! wifiAddAP "$radio" "$essid" "mesh" "ap" "0"; then
+					echo "Can't add AP interface on $radio."
+					exit 1
+				fi
+			done
+		else
+			echo "WARNING: No 2.4GHz channel set!"
+		fi
+
+		if chan5ghz=$(uci -q get gateway.@client[0].chan5ghz); then
+			for phy in $(iw phy | awk '/^Wiphy/{ print $2 }'); do
+				radio="$(wifiAddPhyCond "$phy" "5" "$chan5ghz")"
+
+				if ! wifiAddAP "$radio" "$essid" "mesh" "ap" "0"; then
+					echo "Can't add AP interface on $radio."
+					exit 1
+				fi
+			done
+		else
+			echo "WARNING: No 2.4GHz channel set!"
+		fi
+	else
+		echo "WARNING: No ESSID set!"
+	fi
+}
+
+apply() {
+	uci commit wireless
+}
+
+revert() {
+	uci revert wireless
+}

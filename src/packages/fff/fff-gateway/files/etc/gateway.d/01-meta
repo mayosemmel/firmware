@@ -14,6 +14,14 @@ configure() {
     else
         echo "WARNING: No gateway location set!"
     fi
+
+    ## hoodname
+    if hood=$(uci -q get gateway.@gateway[0].hoodname); then
+        echo "Setting hood name: $hood"
+        uci -q set "system.@system[0].hood=$hood"
+    else
+        echo "WARNING: No hoodname set!"
+    fi
 }
 
 apply() {
