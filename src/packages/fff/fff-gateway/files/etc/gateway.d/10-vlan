@@ -1,6 +1,4 @@
 configure() {
-	## configure vlans
-
 	add_vlan() {
 		local vlan="$1"
 		local ports=$(uci get gateway.$vlan.ports)

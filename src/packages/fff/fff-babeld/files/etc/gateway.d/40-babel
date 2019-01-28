@@ -35,25 +35,25 @@ configure() {
 		fi
 
 		# get iface
-		if uci -q get gateway.$name.vlan; then
-			iface="${SWITCHDEV}.$(uci get gateway.$name.vlan)"
-		elif uci -q get gateway.$name.iface; then
-			iface="$(uci get gateway.$name.iface)"
+		if vlan=$(uci -q get gateway.$name.vlan); then
+			iface="${SWITCHDEV}.$vlan"
+		elif iface=$(uci -q get gateway.$name.iface); then
+			iface="$iface"
 		else
 			echo "ERROR: No iface set for babelpeer $name!"
 			return
 		fi
 
 		# get type
-		if uci -q get gateway.$name.type; then
-			type=$(uci get gateway.$name.type)
+		if type=$(uci -q get gateway.$name.type); then
+			type="$type"
 		else
 			type=wired
 		fi
 
 		# get rxcost
-		if uci -q get gateway.$name.rxcost; then
-			rxcost=$(uci get gateway.$name.rxcost)
+		if rxcost=$(uci -q get gateway.$name.rxcost); then
+			rxcost="$rxcost"
 		else
 			rxcost=96
 		fi
@@ -75,18 +75,18 @@ configure() {
 		uci set network.${name}_rule6.priority='31'
 
 		# peer_ip
-		if uci -q get gateway.@gateway[0].peer_ip; then
-			uci set network.$name.ipaddr=$(uci get gateway.@gateway[0].peer_ip)
-		elif uci -q get gateway.@client[0].ipaddr; then
+		if peer_ip=$(uci -q get gateway.@gateway[0].peer_ip); then
+			uci set network.$name.ipaddr="$peer_ip"
+		elif ipaddr=$(uci -q get gateway.@client[0].ipaddr); then
 			# use ipaddr (without subnet) if no peer_ip set
-			uci set network.$name.ipaddr=$(uci get gateway.@client[0].ipaddr | cut -d / -f1)
+			uci set network.$name.ipaddr=$(echo $ipaddr | cut -d / -f1)
 		else
 			echo "FATAL: Neither peer_ip nor ipaddr set! No peering ipv4 set!"
 		fi
 
 		# peer_ip6
-		if uci -q get gateway.@gateway[0].peer_ip6; then
-			uci set network.$name.ip6addr=$(uci get gateway.@gateway[0].peer_ip6)
+		if peer_ip6=$(uci -q get gateway.@gateway[0].peer_ip6); then
+			uci set network.$name.ip6addr="$peer_ip6"
 		fi
 
 		# add babel interface

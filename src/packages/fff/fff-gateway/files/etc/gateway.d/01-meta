@@ -1,15 +1,15 @@
 configure() {
 	## set hostname
-	if uci -q get gateway.@gateway[0].name; then
-		uci -q set system.@system[0].hostname=$(uci get gateway.@gateway[0].name)
+	if name=$(uci -q get gateway.@gateway[0].name); then
+		uci -q set system.@system[0].hostname="$name"
 	else
 		echo "WARNING: No gateway name set!"
 	fi
 
 	## set location
-	if uci -q get gateway.@gateway[0].latitude && uci -q get gateway.@gateway[0].longitude; then
-		uci -q set fff.system.latitude='$(uci -q get gateway.@gateway[0].latitude)'
-		uci -q set fff.system.longitude='$(uci -q get gateway.@gateway[0].longitude)'
+	if lat=$(uci -q get gateway.@gateway[0].latitude) && long=$(uci -q get gateway.@gateway[0].longitude); then
+		uci -q set fff.system.latitude="$lat"
+		uci -q set fff.system.longitude="$long"
 	else
 		echo "WARNING: No gateway location set!"
 	fi

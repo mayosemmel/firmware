@@ -11,8 +11,8 @@ configure() {
 		fi
 
 		# get rxcost
-		if uci -q get gateway.$name.rxcost; then
-			rxcost=$(uci get gateway.$name.rxcost)
+		if rxcost=$(uci -q get gateway.$name.rxcost); then
+			rxcost="$rxcost"
 		else
 			rxcost=16384
 		fi
@@ -21,8 +21,8 @@ configure() {
 		uci set network.$name=interface
 		uci set network.$name.proto=wireguard
 		uci set network.$name.fwmark='0xc8'
-		if uci -q get gateway.$name.private_key > /dev/null; then
-			uci set network.$name.private_key="$(uci get gateway.$name.private_key)"
+		if privkey=$(uci -q get gateway.$name.private_key); then
+			uci set network.$name.private_key="$privkey"
 		else
 			privkey=$(wg genkey)
 			uci set network.$name.private_key="$privkey"
@@ -42,8 +42,7 @@ configure() {
 		uci set network.${name}_rule6.priority='31'
 
 		# configure wireguard
-		if uci -q get network.@wireguard_$name[0] > /dev/null
-		then
+		if uci -q get network.@wireguard_$name[0] > /dev/null; then
 			#config already exists
 			cfg="@wireguard_$name[0]"
 		else
@@ -77,18 +76,19 @@ configure() {
 		uci set network.${name}_rule6.priority='31'
 
 		# peer_ip
-		if uci -q get gateway.@gateway[0].peer_ip; then
-			uci add_list network.$name.addresses="$(uci get gateway.@gateway[0].peer_ip)"
-		elif uci -q get gateway.@client[0].ipaddr; then
+		if peer_ip=$(uci -q get gateway.@gateway[0].peer_ip); then
+			uci add_list network.$name.addresses="$peer_ip"
+		elif peer_ip=$(uci -q get gateway.@client[0].ipaddr); then
 			# use ipaddr (without subnet) if no peer_ip set
-			uci add_list network.$name.addresses="$(uci get gateway.@client[0].ipaddr | cut -d / -f1)"
+			uci add_list network.$name.addresses="echo $peerip | cut -d / -f1)"
 		else
 			echo "FATAL: Neither peer_ip nor ipaddr set! No peering ipv4 set!"
+			exit 1
 		fi
 
 		# peer_ip6
-		if uci -q get gateway.@gateway[0].peer_ip6; then
-			uci add_list network.$name.addresses=$(uci get gateway.@gateway[0].peer_ip6)
+		if peer_ip6=$(uci -q get gateway.@gateway[0].peer_ip6); then
+			uci add_list network.$name.addresses=$peer_ip6
 		fi
 
 		# add babel interface
