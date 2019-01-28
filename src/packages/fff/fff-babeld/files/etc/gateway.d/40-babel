@@ -1,0 +1,111 @@
+
+configure() {
+    ## babelpeer
+    # remove peers missing in gateway config
+    remove_babelpeer() {
+        local name="$1"
+        if ! echo $name | grep cfg > /dev/null; then # do not delete default interface
+            if ! uci -q get gateway.$name > /dev/null; then
+                # remove interface
+                uci del network.$name
+                # remove iif-rules
+                uci del network.${name}_rule
+                uci del network.${name}_rule6
+                # remove babel interface
+                uci del babeld.$name
+                # remove wireguard config
+                uci -q del network.@wireguard_$name[0]
+            fi
+        fi
+    }
+
+    config_load babeld
+    config_foreach remove_babelpeer interface
+
+    #add new peers
+    add_babelpeer() {
+        local name="$1"
+        local vlan
+        local type
+
+        # prohibit cfg* as name
+        if echo $name | grep cfg > /dev/null; then
+            echo "ERROR: name $name is invalid for babelpeer!"
+            return
+        fi
+
+        # get iface
+        if uci -q get gateway.$name.vlan; then
+            iface="${SWITCHDEV}.$(uci get gateway.$name.vlan)"
+        elif uci -q get gateway.$name.iface; then
+            iface="$(uci get gateway.$name.iface)"
+        else
+            echo "ERROR: No iface set for babelpeer $name!"
+            return
+        fi
+
+        # get type
+        if uci -q get gateway.$name.type; then
+            type=$(uci get gateway.$name.type)
+        else
+            type=wired
+        fi
+
+        # get rxcost
+        if uci -q get gateway.$name.rxcost; then
+            rxcost=$(uci get gateway.$name.rxcost)
+        else
+            rxcost=96
+        fi
+
+        # add interface
+        uci set network.$name=interface
+        uci set network.$name.proto=static
+        uci set network.$name.ifname=$iface
+
+        # add iif-rules
+        uci set network.${name}_rule=rule
+        uci set network.${name}_rule.in="$name"
+        uci set network.${name}_rule.lookup='10'
+        uci set network.${name}_rule.priority='31'
+
+        uci set network.${name}_rule6=rule6
+        uci set network.${name}_rule6.in="$name"
+        uci set network.${name}_rule6.lookup='10'
+        uci set network.${name}_rule6.priority='31'
+
+        # peer_ip
+        if uci -q get gateway.@gateway[0].peer_ip; then
+            uci set network.$name.ipaddr=$(uci get gateway.@gateway[0].peer_ip)
+        elif uci -q get gateway.@client[0].ipaddr; then
+            # use ipaddr (without subnet) if no peer_ip set
+            uci set network.$name.ipaddr=$(uci get gateway.@client[0].ipaddr | cut -d / -f1)
+        else
+            echo "FATAL: Neither peer_ip nor ipaddr set! No peering ipv4 set!"
+        fi
+
+        # peer_ip6
+        if uci -q get gateway.@gateway[0].peer_ip6; then
+            uci set network.$name.ip6addr=$(uci get gateway.@gateway[0].peer_ip6)
+        fi
+
+        # add babel interface
+        uci set babeld.$name=interface
+        uci set babeld.$name.ifname=$iface
+        uci set babeld.$name.type=$type
+        uci set babeld.$name.rxcost=$rxcost
+    }
+
+    config_load gateway
+    config_foreach add_babelpeer babelpeer
+}
+
+apply() {
+	uci commit network
+	uci commit babeld
+}
+
+revert() {
+	uci revert network
+	uci revert babeld
+}

@@ -1,0 +1,62 @@
+configure() {
+    ## configure clientnet
+
+    # ipaddr
+    #remove old ipaddr
+    uci del network.mesh.ipaddr
+    #set new ipaddr
+    if uci -q get gateway.@client[0].ipaddr; then
+        uci add_list network.mesh.ipaddr=$(uci get gateway.@client[0].ipaddr)
+        uci set network.mesh.ip4table='fff'
+        uci set network.mesh.ip6table='fff'
+    else
+        echo "WARNING: No client ipaddr set!"
+    fi
+
+    # ip6addr
+    #remove old ip6addr
+    for ip in $(uci get network.mesh.ip6addr); do
+        if ( echo "$ip" | grep -v -e "fdff:" -e "fe80::1/64" ); then
+            uci del_list network.mesh.ip6addr="$ip"
+        fi
+    done
+    #set new ip6addr
+    if uci -q get gateway.@client[0].ip6addr; then
+        uci add_list network.mesh.ip6addr=$(uci get gateway.@client[0].ip6addr)
+    else
+        echo "WARNING: No client ip6addr set!"
+    fi
+
+    # dhcp
+    uci del dhcp.mesh.start
+    uci del dhcp.mesh.limit
+    if uci -q get gateway.@client[0].dhcp_start; then
+        uci set dhcp.mesh=dhcp
+        uci set dhcp.mesh.interface=mesh
+        uci set dhcp.mesh.start=$(uci get gateway.@client[0].dhcp_start)
+        uci set dhcp.mesh.limit=$(uci get gateway.@client[0].dhcp_limit)
+    else
+        echo "WARNING: No DHCP range start and/or limit set!"
+    fi
+
+    # set interface
+    #remove all eth interfaces
+    ifaces=$(uci get network.mesh.ifname | sed -e "s/ *eth\d\.\d//g" -e "s/ *eth\d//g" -e "s/^ //")
+    if uci -q get gateway.@client[0].vlan; then
+        uci set network.mesh.ifname="${SWITCHDEV}.$(uci get gateway.@client[0].vlan) $ifaces"
+    elif uci -q get gateway.@client[0].iface; then
+        uci set network.mesh.ifname="$(uci get gateway.@client[0].iface) $ifaces"
+    else
+        echo "WARNING: No Interface for client specified"
+    fi
+}
+
+apply() {
+	uci commit network
+	uci commit dhcp
+}
+
+revert() {
+	uci revert network
+	uci revert dhcp
+}

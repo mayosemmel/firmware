@@ -1,0 +1,28 @@
+configure() {
+    ## set hostname
+    if uci -q get gateway.@gateway[0].name; then
+        uci -q set system.@system[0].hostname=$(uci get gateway.@gateway[0].name)
+    else
+        echo "WARNING: No gateway name set!"
+    fi
+
+
+    ## set location
+    if uci -q get gateway.@gateway[0].latitude && uci -q get gateway.@gateway[0].longitude; then
+        uci -q set fff.system.latitude='$(uci -q get gateway.@gateway[0].latitude)'
+        uci -q set fff.system.longitude='$(uci -q get gateway.@gateway[0].longitude)'
+    else
+        echo "WARNING: No gateway location set!"
+    fi
+}
+
+apply() {
+	uci commit system
+	uci commit fff
+	echo "$(uci get "system.@system[0].hostname")" > /proc/sys/kernel/hostname
+}
+
+revert() {
+    uci revert system
+    uci revert fff
+}
