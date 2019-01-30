@@ -28,7 +28,7 @@ configure() {
 				fi
 			done
 		else
-			echo "WARNING: No 2.4GHz channel set!"
+			echo "WARNING: No 5GHz channel set!"
 		fi
 	else
 		echo "WARNING: No ESSID set!"
