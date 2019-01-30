@@ -31,7 +31,7 @@ configure() {
 		# prohibit cfg* as name
 		if echo $name | grep cfg > /dev/null; then
 			echo "ERROR: name $name is invalid for babelpeer!"
-			return
+			exit 1
 		fi
 
 		# get iface
@@ -41,7 +41,7 @@ configure() {
 			iface="$iface"
 		else
 			echo "ERROR: No iface set for babelpeer $name!"
-			return
+			exit 1
 		fi
 
 		# get type
@@ -82,6 +82,7 @@ configure() {
 			uci set network.$name.ipaddr=$(echo $ipaddr | cut -d / -f1)
 		else
 			echo "FATAL: Neither peer_ip nor ipaddr set! No peering ipv4 set!"
+			exit 1
 		fi
 
 		# peer_ip6
