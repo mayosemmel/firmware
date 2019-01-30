@@ -7,12 +7,12 @@ configure() {
 		if ! echo $name | grep cfg > /dev/null; then # do not delete default interface
 			if ! uci -q get gateway.$name > /dev/null; then
 				# remove interface
-				uci del network.$name
+				uci -q del network.$name
 				# remove iif-rules
-				uci del network.${name}_rule
-				uci del network.${name}_rule6
+				uci -q del network.${name}_rule
+				uci -q del network.${name}_rule6
 				# remove babel interface
-				uci del babeld.$name
+				uci -q del babeld.$name
 				# remove wireguard config
 				uci -q del network.@wireguard_$name[0]
 			fi

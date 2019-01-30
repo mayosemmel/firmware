@@ -1,7 +1,7 @@
 configure() {
 	# ipaddr
 	#remove old ipaddr
-	uci del network.mesh.ipaddr
+	uci -q del network.mesh.ipaddr
 	#set new ipaddr
 	if ipaddr=$(uci -q get gateway.@client[0].ipaddr); then
 		uci add_list network.mesh.ipaddr=$ipaddr
@@ -14,7 +14,7 @@ configure() {
 	# ip6addr
 	#remove old ip6addr
 	for ip in $(uci get network.mesh.ip6addr); do
-		if ( echo "$ip" | grep -v -e "fdff:" -e "fe80::1/64" ); then
+		if echo "$ip" | grep -v -e "fdff:" -e "fe80::1/64" > /dev/null; then
 			uci del_list network.mesh.ip6addr="$ip"
 		fi
 	done
@@ -26,13 +26,13 @@ configure() {
 	fi
 
 	# dhcp
-	uci del dhcp.mesh.start
-	uci del dhcp.mesh.limit
+	uci -q del dhcp.mesh.start
+	uci -q del dhcp.mesh.limit
 	if dhcp_start=$(uci -q get gateway.@client[0].dhcp_start); then
 		uci set dhcp.mesh=dhcp
 		uci set dhcp.mesh.interface=mesh
 		uci set dhcp.mesh.start=$dhcp_start
-		uci set dhcp.mesh.limit=$(uci get gateway.@client[0].dhcp_limit)
+		uci set dhcp.mesh.limit=$(uci -q get gateway.@client[0].dhcp_limit)
 	else
 		echo "WARNING: No DHCP range start and/or limit set!"
 	fi

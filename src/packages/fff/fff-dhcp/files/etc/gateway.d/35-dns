@@ -1,7 +1,7 @@
 configure() {
 	## dns
-	uci delete dhcp.@dnsmasq[0].server
-	if uci -q get gateway.@dns[0].server; then
+	uci -q del dhcp.@dnsmasq[0].server
+	if uci -q get gateway.@dns[0].server > /dev/null; then
 		for f in $(uci get gateway.@dns[0].server); do
 			uci add_list dhcp.@dnsmasq[0].server=$f
 			uci add_list dhcp.@dnsmasq[0].server="/in-addr.arpa/$f"
