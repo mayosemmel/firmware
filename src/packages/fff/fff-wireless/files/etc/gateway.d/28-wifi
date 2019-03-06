@@ -8,12 +8,19 @@ configure() {
 		if chan2ghz=$(uci -q get gateway.@client[0].chan2ghz); then
 			for phy in $(iw phy | awk '/^Wiphy/{ print $2 }'); do
 				radio="$(wifiAddPhyCond "$phy" "2" "$chan2ghz")"
+				if [ -n "$radio" ]; then
+					break
+				fi
+			done
 
+			if [ -z "$radio" ]; then
+				echo "WARNING: 2.4GHz channel set, but wifi-device could not be created!"
+			else
 				if ! wifiAddAP "$radio" "$essid" "mesh" "ap" "0"; then
 					echo "Can't add AP interface on $radio."
 					exit 1
 				fi
-			done
+			fi
 		else
 			echo "WARNING: No 2.4GHz channel set!"
 		fi
@@ -21,12 +28,19 @@ configure() {
 		if chan5ghz=$(uci -q get gateway.@client[0].chan5ghz); then
 			for phy in $(iw phy | awk '/^Wiphy/{ print $2 }'); do
 				radio="$(wifiAddPhyCond "$phy" "5" "$chan5ghz")"
+				if [ -n "$radio" ]; then
+					break
+				fi
+			done
 
+			if [ -z "$radio" ]; then
+				echo "WARNING: 5GHz channel set, but wifi-device could not be created!"
+			else
 				if ! wifiAddAP "$radio" "$essid" "mesh" "ap" "0"; then
 					echo "Can't add AP interface on $radio."
 					exit 1
 				fi
-			done
+			fi
 		else
 			echo "WARNING: No 5GHz channel set!"
 		fi
