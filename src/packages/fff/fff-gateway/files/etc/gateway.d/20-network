@@ -53,6 +53,13 @@ configure() {
 	else
 		echo "WARNING: No Interface for client specified"
 	fi
+
+	#wan
+	if vlan=$(uci -q get gateway.@wan[0].vlan); then
+		uci set network.wan.ifname="${SWITCHDEV}.$vlan"
+	elif iface=$(uci -q get gateway.@client[0].iface); then
+		uci set network.wan.ifname="$iface"
+	fi
 }
 
 apply() {
