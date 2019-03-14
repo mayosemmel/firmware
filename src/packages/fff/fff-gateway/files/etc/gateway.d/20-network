@@ -4,7 +4,9 @@ configure() {
 	uci -q del network.mesh.ipaddr
 	#set new ipaddr
 	if ipaddr=$(uci -q get gateway.@client[0].ipaddr); then
-		uci add_list network.mesh.ipaddr=$ipaddr
+		for ip in $ipaddr; do
+			uci add_list network.mesh.ipaddr=$ip
+		done
 		uci set network.mesh.ip4table='fff'
 		uci set network.mesh.ip6table='fff'
 	else
@@ -20,7 +22,9 @@ configure() {
 	done
 	#set new ip6addr
 	if ip6addr=$(uci -q get gateway.@client[0].ip6addr); then
-		uci add_list network.mesh.ip6addr=$ip6addr
+		for ip in $ip6addr; do
+			uci add_list network.mesh.ip6addr=$ip
+		done
 	else
 		echo "WARNING: No client ip6addr set!"
 	fi
