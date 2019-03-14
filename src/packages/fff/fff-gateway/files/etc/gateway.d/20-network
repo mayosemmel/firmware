@@ -7,11 +7,11 @@ configure() {
 		for ip in $ipaddr; do
 			uci add_list network.mesh.ipaddr=$ip
 		done
-		uci set network.mesh.ip4table='fff'
-		uci set network.mesh.ip6table='fff'
 	else
 		echo "WARNING: No client ipaddr set!"
 	fi
+	#put interface routes from set addresses into fff table
+	uci set network.mesh.ip4table='fff'
 
 	# ip6addr
 	#remove old ip6addr
@@ -28,6 +28,8 @@ configure() {
 	else
 		echo "WARNING: No client ip6addr set!"
 	fi
+	#put interface routes from set addresses into fff table
+	uci set network.mesh.ip6table='fff'
 
 	# dhcp
 	uci -q del dhcp.mesh.start
