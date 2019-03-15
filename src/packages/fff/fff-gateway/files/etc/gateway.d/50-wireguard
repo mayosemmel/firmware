@@ -69,7 +69,7 @@ configure() {
 			uci add_list network.$name.addresses="$peer_ip"
 		elif peer_ip=$(uci -q get gateway.@client[0].ipaddr); then
 			# use ipaddr (without subnet) if no peer_ip set
-			uci add_list network.$name.addresses="echo $peerip | cut -d / -f1)"
+			uci add_list network.$name.addresses="$(echo $peer_ip | cut -d / -f1)"
 		else
 			echo "FATAL: Neither peer_ip nor ipaddr set! No peering ipv4 set!"
 			exit 1
