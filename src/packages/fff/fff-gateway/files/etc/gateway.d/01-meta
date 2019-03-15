@@ -2,6 +2,7 @@ configure() {
 	## set hostname
 	if name=$(uci -q get gateway.@gateway[0].name); then
 		uci -q set system.@system[0].hostname="$name"
+		uci -q set fff.system.hostname="$name"
 	else
 		echo "WARNING: No gateway name set!"
 	fi
