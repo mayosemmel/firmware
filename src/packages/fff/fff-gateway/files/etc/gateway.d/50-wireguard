@@ -7,7 +7,7 @@ configure() {
 		# prohibit cfg* as name
 		if echo $name | grep cfg > /dev/null; then
 			echo "ERROR: name $name is invalid for wireguardpeer!"
-			return
+			exit 1
 		fi
 
 		# ensure name length
