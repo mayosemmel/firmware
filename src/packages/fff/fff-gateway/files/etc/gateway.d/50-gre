@@ -1,0 +1,102 @@
+
+configure() {
+	#add new peers
+	add_gre6peer() {
+		local name="$1"
+
+		# prohibit cfg* as name
+		if echo $name | grep cfg > /dev/null; then
+			echo "ERROR: name $name is invalid for grepeer!"
+			exit 1
+		fi
+
+		# ensure name length
+		if [ ${#name} -gt 10 ]; then
+			echo "ERROR: name $name is too long!"
+			exit 1
+		fi
+
+		# get rxcost
+		if rxcost=$(uci -q get gateway.$name.rxcost); then
+			rxcost="$rxcost"
+		else
+			rxcost=16384
+		fi
+
+		# add interface
+		uci set network.$name=interface
+		uci set network.$name.proto=grev6
+
+		# configure gre
+		uci set network.$name.tunlink='wan'
+		if ip6addr=$(uci get gateway.$name.ip6addr); then
+			uci set network.$name.ip6addr="$(uci get gateway.$name.ip6addr)"
+		else
+			echo "FATAL: No ip6addr set for grepeer \"$name\""
+			exit 1
+		fi
+		if peer6addr=$(uci get gateway.$name.peer6addr); then
+			uci set network.$name.peer6addr="$(uci get gateway.$name.peer6addr)"
+		else
+			echo "FATAL: No peer6addr set for grepeer \"$name\""
+			exit 1
+		fi
+
+		# remove old addresses
+		uci -q del network.${name}_ip.ip6addr
+		uci -q del network.${name}_ip.ipaddr
+
+		# link local
+		uci set network.${name}_ip=interface
+		uci set network.${name}_ip.proto=static
+		uci set network.${name}_ip.ifname="@$name"
+		mac="$(cat "/sys/class/net/$SWITCHDEV/address")"
+		uci add_list network.${name}_ip.ip6addr="$(ipEUIAssemble "fe80::/64" "$mac")"
+
+		# add iif-rules
+		uci set network.${name}_rule=rule
+		uci set network.${name}_rule.in="$name"
+		uci set network.${name}_rule.lookup='10'
+		uci set network.${name}_rule.priority='31'
+
+		uci set network.${name}_rule6=rule6
+		uci set network.${name}_rule6.in="$name"
+		uci set network.${name}_rule6.lookup='10'
+		uci set network.${name}_rule6.priority='31'
+
+		# peer_ip
+		if peer_ip=$(uci -q get gateway.@gateway[0].peer_ip); then
+			uci add_list network.${name}_ip.ipaddr="$peer_ip"
+		elif peer_ip=$(uci -q get gateway.@client[0].ipaddr); then
+			# use ipaddr (without subnet) if no peer_ip set
+			uci add_list network.${name}_ip.ipaddr="$(echo $peer_ip | cut -d / -f1)"
+		else
+			echo "FATAL: Neither peer_ip nor ipaddr set! No peering ipv4 set!"
+			exit 1
+		fi
+
+		# peer_ip6
+		if peer_ip6=$(uci -q get gateway.@gateway[0].peer_ip6); then
+			uci add_list network.${name}_ip.ipaddr=$peer_ip6
+		fi
+
+		# add babel interface
+		uci set babeld.$name=interface
+		uci set babeld.$name.ifname="$name"
+		uci set babeld.$name.type='tunnel'
+		uci set babeld.$name.rxcost=$rxcost
+	}
+
+	config_load gateway
+	config_foreach add_gre6peer gre6peer
+}
+
+commit() {
+	uci commit network
+	uci commit babeld
+}
+
+revert() {
+	uci revert network
+	uci revert babeld
+}
