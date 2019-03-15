@@ -7,6 +7,13 @@ configure() {
 		echo "WARNING: No gateway name set!"
 	fi
 
+	## set contact
+	if contact=$(uci -q get gateway.@gateway[0].contact); then
+		uci -q set fff.system.contact="$contact"
+	else
+		echo "WARNING: No contact set!"
+	fi
+
 	## set location
 	if lat=$(uci -q get gateway.@gateway[0].latitude) && long=$(uci -q get gateway.@gateway[0].longitude); then
 		uci -q set fff.system.latitude="$lat"
