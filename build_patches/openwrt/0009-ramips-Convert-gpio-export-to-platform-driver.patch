@@ -16,15 +16,15 @@ Signed-off-by: René van Dorst <opensource@vdorst.com>
  1 file changed, 4 insertions(+), 7 deletions(-)
 
 diff --git a/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch b/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
-index 10ca24bc71..ea93538a4c 100644
+index 0c1bc73926..6d6cc18bb1 100644
 --- a/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
 +++ b/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
 @@ -22,7 +22,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
   
   #include "gpiolib.h"
   
--@@ -506,3 +508,71 @@ void of_gpiochip_remove(struct gpio_chip
-+@@ -506,3 +508,68 @@ void of_gpiochip_remove(struct gpio_chip
+-@@ -506,3 +508,69 @@ void of_gpiochip_remove(struct gpio_chip
++@@ -506,3 +508,62 @@ void of_gpiochip_remove(struct gpio_chip
   	gpiochip_remove_pin_ranges(chip);
   	of_node_put(chip->of_node);
   }
@@ -37,7 +37,7 @@ index 10ca24bc71..ea93538a4c 100644
  +{
  +	struct device_node *np = pdev->dev.of_node;
  +	struct device_node *cnp;
-@@ -87,13 +87,10 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
+@@ -85,13 +85,10 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  +		.owner	= THIS_MODULE,
  +		.of_match_table	= of_match_ptr(gpio_export_ids),
  +	},
