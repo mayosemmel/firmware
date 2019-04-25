@@ -1,0 +1,968 @@
+From 478361c301b7856963d86b315d857caa029af3ed Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+Date: Thu, 19 Jul 2018 12:55:55 +0200
+Subject: [PATCH 3/9] Working configuration * DSA * SFP device tree binding *
+ mainline eth driver
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: René van Dorst <opensource@vdorst.com>
+---
+ .../ramips/base-files/etc/board.d/02_network  |  31 +--
+ target/linux/ramips/dts/UBNT-ER-e50.dtsi      | 130 +++++++++++-
+ target/linux/ramips/dts/UBNT-ERX-SFP.dts      |  91 ++++++++-
+ target/linux/ramips/dts/mt7621.dtsi           |  67 +++----
+ target/linux/ramips/mt7621/config-4.14        |   9 +
+ .../2000-Patches-for-mt7623-tree.patch        |   2 +-
+ ...001-Adding-MT7621-basic-syscon-clock.patch |  29 ++-
+ .../2002-Adding-MT7621-DSA-support.patch      | 188 +++++++++++++++++-
+ .../2100-at803x-advertise-fiber-support.patch |  45 +++--
+ 9 files changed, 493 insertions(+), 99 deletions(-)
+
+diff --git a/target/linux/ramips/base-files/etc/board.d/02_network b/target/linux/ramips/base-files/etc/board.d/02_network
+index 818a919f41..fcacaacbe6 100755
+--- a/target/linux/ramips/base-files/etc/board.d/02_network
++++ b/target/linux/ramips/base-files/etc/board.d/02_network
+@@ -49,17 +49,14 @@ ramips_setup_interfaces()
+ 	dcs-930|\
+ 	dcs-930l-b1|\
+ 	ht-tm02|\
+-	kimax,u35wf|\
+ 	linkits7688 | \
+ 	m2m|\
+ 	microwrt|\
+-	mikrotik,rbm11g|\
+ 	mpr-a2|\
+ 	ncs601w|\
+ 	omega2 | \
+ 	omega2p | \
+ 	timecloud|\
+-	tplink,tl-wa801nd-v5|\
+ 	w150m|\
+ 	widora,neo-16m|\
+ 	widora,neo-32m|\
+@@ -198,10 +195,10 @@ ramips_setup_interfaces()
+ 	gl-mt300n|\
+ 	gl-mt750|\
+ 	hg255d|\
++	iodata,wn-gx300gr|\
+ 	jhr-n805r|\
+ 	jhr-n825r|\
+ 	jhr-n926r|\
+-	mikrotik,rbm33g|\
+ 	mzk-wdpr|\
+ 	rb750gr3|\
+ 	rt-n14u|\
+@@ -214,14 +211,12 @@ ramips_setup_interfaces()
+ 	tl-wr841n-v13|\
+ 	u7628-01-128M-16M|\
+ 	ubnt-erx|\
+-	ubnt-erx-sfp|\
+ 	ur-326n4g|\
+ 	wrtnode|\
+ 	wrtnode2p | \
+ 	wrtnode2r | \
+ 	youhua,wr1200js|\
+-	zbt-wa05|\
+-	zyxel,keenetic-extra-ii)
++	zbt-wa05)
+ 		ucidef_add_switch "switch0" \
+ 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "6@eth0"
+ 		;;
+@@ -231,9 +226,7 @@ ramips_setup_interfaces()
+ 			"1:lan:3" "2:lan:4" "3:lan:1" "4:lan:2" "0:wan" "6@eth0"
+ 		;;
+ 	dir-860l-b1|\
+-	elecom,wrc-1167ghbk2-s|\
+-	iodata,wn-ax1167gr|\
+-	iodata,wn-gx300gr)
++	elecom,wrc-1167ghbk2-s)
+ 		ucidef_add_switch "switch0" \
+ 			"1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "0:wan" "6@eth0"
+ 		;;
+@@ -314,10 +307,6 @@ ramips_setup_interfaces()
+ 		ucidef_add_switch "switch0" \
+ 		"1:lan:2" "2:lan:1" "4:wan" "6@eth0"
+ 		;;
+-	phicomm,k2g)
+-		ucidef_add_switch "switch0" \
+-			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5:wan" "6@eth0"
+-		;;
+ 	re350-v1)
+ 		ucidef_add_switch "switch0" \
+ 			"0:lan" "6@eth0"
+@@ -340,10 +329,6 @@ ramips_setup_interfaces()
+ 		ucidef_add_switch "switch0" \
+ 			"1:lan" "2:lan" "3:lan" "4:lan" "5:wan" "0@eth0"
+ 		;;
+-	tplink,c2-v1)
+-		ucidef_add_switch "switch1" \
+-			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "6@eth0"
+-		;;
+ 	tplink,tl-wr902ac-v3)
+ 		ucidef_add_switch "switch0" \
+ 			"4:lan" "6@eth0"
+@@ -381,7 +366,7 @@ ramips_setup_interfaces()
+ 		;;
+ 	wizfi630a)
+ 		ucidef_add_switch "switch0" \
+-			"0:lan" "1:lan" "2:wan" "6@eth0"
++			"1:lan" "2:lan" "0:wan" "6@eth0"
+ 		;;
+ 	wt3020-4M|\
+ 	wt3020-8M)
+@@ -393,6 +378,10 @@ ramips_setup_interfaces()
+ 		ucidef_add_switch "switch0" \
+ 			"0:lan:2" "1:lan:1" "4:wan" "6@eth0"
+ 		;;
++	ubnt-erx-sfp)
++		ucidef_set_interface_lan "lan0 lan1 lan2 lan3 lan4"
++		ucidef_set_interface_wan eth1
++		;;
+ 	*)
+ 		RT3X5X=`cat /proc/cpuinfo | egrep "(RT3.5|RT5350)"`
+ 		if [ -n "${RT3X5X}" ]; then
+@@ -480,7 +469,6 @@ ramips_setup_macs()
+ 		[ -n "$lan_mac" ] || lan_mac=$(cat /sys/class/net/eth0/address)
+ 		wan_mac=$(macaddr_add "$lan_mac" 1)
+ 		;;
+-	iodata,wn-ax1167gr|\
+ 	iodata,wn-gx300gr)
+ 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary Factory 4)" 1)
+ 		;;
+@@ -521,8 +509,7 @@ ramips_setup_macs()
+ 		wan_mac=$(mtd_get_mac_binary factory 4)
+ 		lan_mac=$(mtd_get_mac_binary factory 46)
+ 		;;
+-	oy-0001|\
+-	phicomm,k2g)
++	oy-0001)
+ 		lan_mac=$(mtd_get_mac_binary factory 40)
+ 		wan_mac=$(mtd_get_mac_binary factory 46)
+ 		;;
+diff --git a/target/linux/ramips/dts/UBNT-ER-e50.dtsi b/target/linux/ramips/dts/UBNT-ER-e50.dtsi
+index 0947dd6106..d76e1418b0 100644
+--- a/target/linux/ramips/dts/UBNT-ER-e50.dtsi
++++ b/target/linux/ramips/dts/UBNT-ER-e50.dtsi
+@@ -27,10 +27,134 @@
+ 			linux,code = <KEY_RESTART>;
+ 		};
+ 	};
++
++	reg_core: regulator@0 {
++		reg = <0>;
++		regulator-name = "Core";
++		regulator-min-microvolt = < 500000>;
++		regulator-max-microvolt = <3650000>;
++		regulator-boot-on;
++	};
++
++	reg_io: regulator@1 {
++		reg = <1>;
++		regulator-name = "io";
++		regulator-min-microvolt = <3000000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++	};
++
++	mt7530: switch@0 {
++		compatible = "mediatek,mt7530";
++		#address-cells = <1>;
++		#size-cells = <0>;
++	};
++};
++
++&gdma {
++	status = "okay";
++};
++
++&hsdma {
++	status = "okay";
++};
++
++&eth {
++	status = "okay";
++
++	gmac0: mac@0 {
++		compatible = "mediatek,eth-mac";
++		mtd-mac-address = <&factory 0x22>;
++		reg = <0>;
++		phy-mode = "rgmii";
++
++		fixed-link {
++			speed = <1000>;
++			full-duplex;
++			pause;
++		};
++	};
++
++	gmac1: mac@1 {
++		compatible = "mediatek,eth-mac";
++		mtd-mac-address = <&factory 0x22>;
++		mtd-mac-address-increment = <1>;
++		reg = <1>;
++		phy-mode = "rgmii";
++		phy-handle = <&ephy5>;
++	};
++
++	mdio: mdio-bus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		ephy5: ethernet-phy@7 {
++			reg = <7>;
++			phy-mode = "rgmii";
++		};
++	};
+ };
+ 
+-&ethernet {
+-	mtd-mac-address = <&factory 0x22>;
++&mt7530 {
++	compatible = "mediatek,mt7530";
++	#address-cells = <1>;
++	#size-cells = <0>;
++	reg = <0>;
++	pinctrl-names = "default";
++	mediatek,mcm;
++	resets = <&rstctrl 2>;
++	reset-names = "mcm";
++	core-supply = <&reg_core>;
++	io-supply = <&reg_io>;
++
++	dsa,mii-bus = <&mdio>;
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0>;
++
++		port@0 {
++			reg = <0>;
++			label = "lan0";
++			cpu = <&cpu_port0>;
++		};
++
++		port@1 {
++			reg = <1>;
++			label = "lan1";
++			cpu = <&cpu_port0>;
++		};
++
++		port@2 {
++			reg = <2>;
++			label = "lan2";
++			cpu = <&cpu_port0>;
++		};
++
++		port@3 {
++			reg = <3>;
++			label = "lan3";
++			cpu = <&cpu_port0>;
++		};
++
++		port@4 {
++			reg = <4>;
++			label = "lan4";
++			cpu = <&cpu_port0>;
++		};
++
++		cpu_port0: port@6 {
++			reg = <6>;
++			label = "cpu";
++			ethernet = <&gmac0>;
++			phy-mode = "rgmii";
++
++			fixed-link {
++				speed = <1000>;
++				full-duplex;
++			};
++		};
++	};
+ };
+ 
+ &nand {
+@@ -72,7 +196,7 @@
+ &pinctrl {
+ 	state_default: pinctrl0 {
+ 		gpio {
+-			ralink,group = "uart2", "uart3", "i2c", "pcie", "rgmii2", "jtag";
++			ralink,group = "uart2", "uart3", "pcie", "i2c", "jtag";
+ 			ralink,function = "gpio";
+ 		};
+ 	};
+diff --git a/target/linux/ramips/dts/UBNT-ERX-SFP.dts b/target/linux/ramips/dts/UBNT-ERX-SFP.dts
+index 7de37804a5..a633d8bedd 100644
+--- a/target/linux/ramips/dts/UBNT-ERX-SFP.dts
++++ b/target/linux/ramips/dts/UBNT-ERX-SFP.dts
+@@ -8,7 +8,7 @@
+ 	model = "UBNT-ERX-SFP";
+ 	compatible = "ubiquiti,edgerouterx-sfp", "mediatek,mt7621-soc";
+ 
+-	i2c-gpio {
++	i2c0: i2c-gpio {
+ 		compatible = "i2c-gpio";
+ 		gpios = <&gpio0 3 GPIO_ACTIVE_HIGH /* sda */
+ 		         &gpio0 4 GPIO_ACTIVE_HIGH /* scl */
+@@ -16,9 +16,94 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		pca9555@25 {
+-			compatible = "pca9555";
++		/*
++		 * PCA9655 GPIO expander
++		 *  0-POE power port eth0
++		 *  1-POE power port eth1
++		 *  2-POE power port eth2
++		 *  3-POE power port eth3
++		 *  4-POE power port eth4
++		 *  5-SFP_MOD_DEF0#
++		 *  6-
++		 *  7-
++		 *  8-Pull up to VCC
++		 *  9-Pull down to GND
++		 * 10-Pull down to GND
++		 * 11-Pull down to GND
++		 * 12-Pull down to GND
++		 * 13-Pull down to GND
++		 * 14-Pull down to GND
++		 * 15-Pull down to GND
++		 */
++		expander0: pca9555@25 {
++			compatible = "nxp,pca9555";
++			interrupt-parent = <&gpio0>;
++			interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <2>;
+ 			reg = <0x25>;
+ 		};
+ 	};
++
++	gpio_soc_export {
++		compatible = "gpio-export";
++		#size-cells = <0>;
++
++		sfp_i2c_clk_disable {
++			/* i2c data is always connected to sfp cage */
++			gpio-export,name = "sfp_i2c_clk_disable";
++			gpio-export,output = <0>;
++			gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	gpio_expander_export {
++		compatible = "gpio-export";
++		#size-cells = <0>;
++
++		poe_power_port0 {
++			gpio-export,name = "poe_power_port0";
++			gpio-export,output = <0>;
++			gpios = <&expander0 0 GPIO_ACTIVE_HIGH>;
++		};
++
++		poe_power_port1 {
++			gpio-export,name = "poe_power_port1";
++			gpio-export,output = <0>;
++			gpios = <&expander0 1 GPIO_ACTIVE_HIGH>;
++		};
++
++		poe_power_port2 {
++			gpio-export,name = "poe_power_port2";
++			gpio-export,output = <0>;
++			gpios = <&expander0 2 GPIO_ACTIVE_HIGH>;
++		};
++
++		poe_power_port3 {
++			gpio-export,name = "poe_power_port3";
++			gpio-export,output = <0>;
++			gpios = <&expander0 3 GPIO_ACTIVE_HIGH>;
++		};
++
++		poe_power_port4 {
++			gpio-export,name = "poe_power_port4";
++			gpio-export,output = <0>;
++			gpios = <&expander0 4 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++       sfp5: sfp {
++               compatible = "sff,sfp";
++               i2c-bus = <&i2c0>;
++               mod-def0-gpio = <&expander0 5 GPIO_ACTIVE_LOW>;
++               maximum-power-milliwatt = <1000>;
++       };
++};
++
++
++&gmac1 {
++       managed = "in-band-status";
++       sfp = <&sfp5>;
+ };
+diff --git a/target/linux/ramips/dts/mt7621.dtsi b/target/linux/ramips/dts/mt7621.dtsi
+index 0655e35301..dadeea859c 100644
+--- a/target/linux/ramips/dts/mt7621.dtsi
++++ b/target/linux/ramips/dts/mt7621.dtsi
+@@ -1,4 +1,5 @@
+ #include <dt-bindings/interrupt-controller/mips-gic.h>
++#include <dt-bindings/clock/mt7621-clk.h>
+ 
+ / {
+ 	#address-cells = <1>;
+@@ -33,6 +34,13 @@
+ 		serial0 = &uartlite;
+ 	};
+ 
++	clkxtal: clkxtal {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <40000000>;
++		clock-output-names = "clkxtal";
++	};
++
+ 	cpuclock: cpuclock {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-clock";
+@@ -385,47 +393,32 @@
+ 		#size-cells = <1>;
+ 	};
+ 
+-	hnat: hnat@1e100000 {
+-		compatible = "mediatek,mt7623-hnat";
+-		reg = <0x1e100000 0x10000>;
+-		mtketh-ppd = "eth0";
+-		mtketh-lan = "eth0";
+-		mtketh-wan = "eth0";
+-		resets = <&rstctrl 0>;
+-		reset-names = "mtketh";
++	ethsys: syscon@1e000000 {
++		compatible = "mediatek,mt7621-ethsys",
++			     "syscon";
++		reg = <0x1e000000 0x100>;
++		#clock-cells = <1>;
++		#reset-cells = <1>;
+ 	};
+ 
+-	ethernet: ethernet@1e100000 {
+-		compatible = "mediatek,mt7621-eth";
+-		reg = <0x1e100000 0x10000>;
+-
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-
+-		resets = <&rstctrl 6 &rstctrl 23>;
+-		reset-names = "fe", "eth";
+-
++	eth: ethernet@1e100000 {
++		compatible = "mediatek,mt7621-eth",
++			     "syscon";
++		reg = <0x1e100000 0xe000>;
+ 		interrupt-parent = <&gic>;
+ 		interrupts = <GIC_SHARED 3 IRQ_TYPE_LEVEL_HIGH>;
+-
+-		mediatek,switch = <&gsw>;
+-
+-		mdio-bus {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-
+-			phy1f: ethernet-phy@1f {
+-				reg = <0x1f>;
+-				phy-mode = "rgmii";
+-			};
+-		};
+-	};
+-
+-	gsw: gsw@1e110000 {
+-		compatible = "mediatek,mt7621-gsw";
+-		reg = <0x1e110000 0x8000>;
+-		interrupt-parent = <&gic>;
+-		interrupts = <GIC_SHARED 23 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&ethsys CLK_ETHSYS_ETH>,
++			 <&ethsys CLK_ETHSYS_ESW>;
++		clock-names = "ethif", "esw";
++		resets = <&rstctrl 6>,
++			 <&rstctrl 23>,
++			 <&rstctrl 0>;
++		reset-names = "fe", "gmac", "ppe";
++		mediatek,ethsys = <&ethsys>;
++		mediatek,pctl = <&ethsys>;
++		status = "disabled";
++		#address-cells = <1>;
++		#size-cells = <0>;
+ 	};
+ 
+ 	pcie: pcie@1e140000 {
+diff --git a/target/linux/ramips/mt7621/config-4.14 b/target/linux/ramips/mt7621/config-4.14
+index 35065db6bd..6c11aa416e 100644
+--- a/target/linux/ramips/mt7621/config-4.14
++++ b/target/linux/ramips/mt7621/config-4.14
+@@ -37,6 +37,8 @@ CONFIG_CMDLINE_BOOL=y
+ # CONFIG_CMDLINE_OVERRIDE is not set
+ CONFIG_COMMON_CLK=y
+ # CONFIG_COMMON_CLK_BOSTON is not set
++CONFIG_COMMON_CLK_MT7621=y
++CONFIG_COMMON_CLK_MT7621_ETHSYS=y
+ CONFIG_CPU_GENERIC_DUMP_TLB=y
+ CONFIG_CPU_HAS_PREFETCH=y
+ CONFIG_CPU_HAS_RIXI=y
+@@ -151,12 +153,14 @@ CONFIG_IRQ_DOMAIN_HIERARCHY=y
+ CONFIG_IRQ_FORCED_THREADING=y
+ CONFIG_IRQ_MIPS_CPU=y
+ CONFIG_IRQ_WORK=y
++# CONFIG_ISDN is not set
+ CONFIG_LIBFDT=y
+ CONFIG_LZO_COMPRESS=y
+ CONFIG_LZO_DECOMPRESS=y
+ CONFIG_MDIO_BUS=y
+ CONFIG_MDIO_DEVICE=y
+ CONFIG_MDIO_I2C=y
++CONFIG_MFD_SYSCON=y
+ CONFIG_MIPS=y
+ CONFIG_MIPS_ASID_BITS=8
+ CONFIG_MIPS_ASID_SHIFT=0
+@@ -207,8 +211,12 @@ CONFIG_MTD_UBI_WL_THRESHOLD=4096
+ CONFIG_MTK_MTD_NAND=y
+ CONFIG_NEED_DMA_MAP_STATE=y
+ # CONFIG_NET_CADENCE is not set
++CONFIG_NET_DSA=y
++CONFIG_NET_DSA_MT7530=y
++CONFIG_NET_DSA_TAG_MTK=y
+ CONFIG_NET_FLOW_LIMIT=y
+ CONFIG_NET_MEDIATEK_SOC=y
++CONFIG_NET_SWITCHDEV=y
+ # CONFIG_NET_VENDOR_3COM is not set
+ # CONFIG_NET_VENDOR_ADAPTEC is not set
+ # CONFIG_NET_VENDOR_AGERE is not set
+@@ -303,6 +311,7 @@ CONFIG_RCU_NEED_SEGCBLIST=y
+ CONFIG_RCU_STALL_COMMON=y
+ CONFIG_REGMAP=y
+ CONFIG_REGMAP_I2C=y
++CONFIG_REGMAP_MMIO=y
+ CONFIG_REGMAP_SPI=y
+ CONFIG_REGULATOR=y
+ CONFIG_REGULATOR_FIXED_VOLTAGE=y
+diff --git a/target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch b/target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch
+index a09c7d1625..14aa356b10 100644
+--- a/target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch
++++ b/target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch
+@@ -1,7 +1,7 @@
+ From ebead4af1e8c4f54d2d05fe020195f11bfec6805 Mon Sep 17 00:00:00 2001
+ From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+ Date: Thu, 26 Jul 2018 13:13:15 +0200
+-Subject: [PATCH 2000/2002] Patches for mt7623 tree
++Subject: [PATCH 2000/2003] Patches for mt7623 tree
+ 
+ ---
+  drivers/clk/Makefile                        |    2 +-
+diff --git a/target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch b/target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch
+index 904dfb30d7..671ab66321 100644
+--- a/target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch
++++ b/target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch
+@@ -1,7 +1,7 @@
+-From 80ddc3b0b63accc2b23fdcce695a23f3f6bb4af1 Mon Sep 17 00:00:00 2001
++From b18bd238bd97d92f380cf5cce318dc28598dfe39 Mon Sep 17 00:00:00 2001
+ From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+ Date: Thu, 19 Jul 2018 15:57:42 +0200
+-Subject: [PATCH 2001/2002] Adding MT7621 basic syscon clock.
++Subject: [PATCH 2001/2003] Adding MT7621 basic syscon clock.
+ MIME-Version: 1.0
+ Content-Type: text/plain; charset=UTF-8
+ Content-Transfer-Encoding: 8bit
+@@ -10,10 +10,11 @@ Signed-off-by: René van Dorst <opensource@vdorst.com>
+ ---
+  arch/mips/ralink/Kconfig               |   2 +
+  drivers/clk/mediatek/Kconfig           |  16 +
++ drivers/clk/mediatek/Makefile          |   1 +
+  drivers/clk/mediatek/clk-mt7621-eth.c  | 108 +++++
+  drivers/clk/mediatek/clk-mt7621.c      | 589 +++++++++++++++++++++++++
+  include/dt-bindings/clock/mt7621-clk.h |  37 ++
+- 5 files changed, 752 insertions(+)
++ 6 files changed, 753 insertions(+)
+  create mode 100644 drivers/clk/mediatek/clk-mt7621-eth.c
+  create mode 100644 drivers/clk/mediatek/clk-mt7621.c
+  create mode 100644 include/dt-bindings/clock/mt7621-clk.h
+@@ -32,18 +33,19 @@ index e8c699d24e28..1addc7466982 100644
+  
+  choice
+ diff --git a/drivers/clk/mediatek/Kconfig b/drivers/clk/mediatek/Kconfig
+-index 1f9ea0f21df1..77aae573bfe4 100644
++index 1f9ea0f21df1..620890c4283d 100644
+ --- a/drivers/clk/mediatek/Kconfig
+ +++ b/drivers/clk/mediatek/Kconfig
+ @@ -181,4 +181,20 @@ config COMMON_CLK_MT8173
+  	default ARCH_MEDIATEK
+  	---help---
+  	  This driver supports MediaTek MT8173 clocks.
+++
++ endmenu
+ +
+ +config COMMON_CLK_MT7621
+ +	bool "Clock driver for Mediatek MT7621"
+ +	depends on SOC_MT7621 || COMPILE_TEST
+-+	select COMMON_CLK_MEDIATEK
+ +	default SOC_MT7621
+ +	---help---
+ +	  This driver supports Mediatek MT7621 basic clocks.
+@@ -51,11 +53,22 @@ index 1f9ea0f21df1..77aae573bfe4 100644
+ +config COMMON_CLK_MT7621_ETHSYS
+ +	bool "Clock driver for Mediatek MT7621 ethsys"
+ +	depends on COMMON_CLK_MT7621
+-+	depends on MFD_SYSCON
+++	default SOC_MT7621
+++	select MFD_SYSCON
+ +	---help---
+ +	  This driver supports Mediatek MT7621 ethsys clocks.
+-+
+- endmenu
++diff --git a/drivers/clk/mediatek/Makefile b/drivers/clk/mediatek/Makefile
++index 5160fdc4bbb8..3d0c8070fb13 100644
++--- a/drivers/clk/mediatek/Makefile
+++++ b/drivers/clk/mediatek/Makefile
++@@ -20,6 +20,7 @@ obj-$(CONFIG_COMMON_CLK_MT2712_MFGCFG) += clk-mt2712-mfg.o
++ obj-$(CONFIG_COMMON_CLK_MT2712_MMSYS) += clk-mt2712-mm.o
++ obj-$(CONFIG_COMMON_CLK_MT2712_VDECSYS) += clk-mt2712-vdec.o
++ obj-$(CONFIG_COMMON_CLK_MT2712_VENCSYS) += clk-mt2712-venc.o
+++obj-$(CONFIG_COMMON_CLK_MT7621_ETHSYS) += clk-mtk.o clk-gate.o reset.o clk-mt7621-eth.o
++ obj-$(CONFIG_COMMON_CLK_MT7622) += clk-mt7622.o
++ obj-$(CONFIG_COMMON_CLK_MT7622_ETHSYS) += clk-mt7622-eth.o
++ obj-$(CONFIG_COMMON_CLK_MT7622_HIFSYS) += clk-mt7622-hif.o
+ diff --git a/drivers/clk/mediatek/clk-mt7621-eth.c b/drivers/clk/mediatek/clk-mt7621-eth.c
+ new file mode 100644
+ index 000000000000..678d33900a0e
+diff --git a/target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch b/target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch
+index 063630df01..7ded27c1c7 100644
+--- a/target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch
++++ b/target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch
+@@ -1,7 +1,7 @@
+-From 0994aa91b24ae1d3f9a98630c87f20758e2ac2b5 Mon Sep 17 00:00:00 2001
++From 69c9e7bbdba19504c0d1100a969cbb1b92ba9164 Mon Sep 17 00:00:00 2001
+ From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+ Date: Thu, 19 Jul 2018 16:12:40 +0200
+-Subject: [PATCH 2002/2002] Adding MT7621 DSA support.
++Subject: [PATCH 2002/2003] Adding MT7621 DSA support.
+ MIME-Version: 1.0
+ Content-Type: text/plain; charset=UTF-8
+ Content-Transfer-Encoding: 8bit
+@@ -12,7 +12,11 @@ Signed-off-by: René van Dorst <opensource@vdorst.com>
+  drivers/net/ethernet/mediatek/Kconfig       |  4 +-
+  drivers/net/ethernet/mediatek/mtk_eth_soc.c | 79 ++++++++++++++++++++-
+  drivers/net/ethernet/mediatek/mtk_eth_soc.h | 23 +++++-
+- 4 files changed, 135 insertions(+), 8 deletions(-)
++ include/net/dsa.h                           | 21 ++++++
++ net/dsa/dsa2.c                              | 41 +++++++++--
++ net/dsa/dsa_priv.h                          |  5 ++
++ net/dsa/slave.c                             |  3 +-
++ 8 files changed, 200 insertions(+), 13 deletions(-)
+ 
+ diff --git a/drivers/net/dsa/mt7530.c b/drivers/net/dsa/mt7530.c
+ index d8407a72d676..dc48f01674ab 100644
+@@ -447,6 +451,184 @@ index 8c657616a102..747f715310ca 100644
+  	struct regmap			*pctl;
+  	u32				chip_id;
+  	bool				hwlro;
++diff --git a/include/net/dsa.h b/include/net/dsa.h
++index dd44d6ce1097..f83803293710 100644
++--- a/include/net/dsa.h
+++++ b/include/net/dsa.h
++@@ -185,6 +185,10 @@ struct dsa_port {
++ 	u8			stp_state;
++ 	struct net_device	*bridge_dev;
++ 	struct devlink_port	devlink_port;
+++
+++	struct net_device	*ethernet;
+++	int			upstream;
+++
++ 	/*
++ 	 * Original copy of the master netdev ethtool_ops
++ 	 */
++@@ -266,6 +270,11 @@ static inline bool dsa_is_normal_port(struct dsa_switch *ds, int p)
++ 	return !dsa_is_cpu_port(ds, p) && !dsa_is_dsa_port(ds, p);
++ }
++ 
+++static inline bool dsa_is_upstream_port(struct dsa_switch *ds, int p)
+++{
+++	return dsa_is_cpu_port(ds, p) || dsa_is_dsa_port(ds, p);
+++}
+++
++ static inline u8 dsa_upstream_port(struct dsa_switch *ds)
++ {
++ 	struct dsa_switch_tree *dst = ds->dst;
++@@ -282,6 +291,18 @@ static inline u8 dsa_upstream_port(struct dsa_switch *ds)
++ 		return ds->rtable[dst->cpu_dp->ds->index];
++ }
++ 
+++static inline u8 dsa_port_upstream_port(struct dsa_switch *ds, int port)
+++{
+++	/*
+++	 * If this port has a specific upstream cpu port, use it,
+++	 * otherwise use the switch default.
+++	 */
+++	if (ds->ports[port].upstream)
+++		return ds->ports[port].upstream;
+++	else
+++		return dsa_upstream_port(ds);
+++}
+++
++ typedef int dsa_fdb_dump_cb_t(const unsigned char *addr, u16 vid,
++ 			      bool is_static, void *data);
++ struct dsa_switch_ops {
++diff --git a/net/dsa/dsa2.c b/net/dsa/dsa2.c
++index 045d8a176279..4be634747794 100644
++--- a/net/dsa/dsa2.c
+++++ b/net/dsa/dsa2.c
++@@ -253,6 +253,8 @@ static int dsa_cpu_port_apply(struct dsa_port *port)
++ 	memset(&port->devlink_port, 0, sizeof(port->devlink_port));
++ 	err = devlink_port_register(ds->devlink, &port->devlink_port,
++ 				    port->index);
+++	if (port->netdev)
+++		port->netdev->dsa_ptr = ds->dst;
++ 	return err;
++ }
++ 
++@@ -262,6 +264,12 @@ static void dsa_cpu_port_unapply(struct dsa_port *port)
++ 	dsa_cpu_dsa_destroy(port);
++ 	port->ds->cpu_port_mask &= ~BIT(port->index);
++ 
+++	if (port->netdev)
+++		port->netdev->dsa_ptr = NULL;
+++	if (port->ethernet) {
+++		dev_put(port->ethernet);
+++		port->ethernet = NULL;
+++	}
++ }
++ 
++ static int dsa_user_port_apply(struct dsa_port *port)
++@@ -505,10 +513,9 @@ static int dsa_cpu_parse(struct dsa_port *port, u32 index,
++ 		dev_put(ethernet_dev);
++ 	}
++ 
++-	if (!dst->cpu_dp) {
+++	if (!dst->cpu_dp)
++ 		dst->cpu_dp = port;
++-		dst->cpu_dp->netdev = ethernet_dev;
++-	}
+++	port->netdev = ethernet_dev;
++ 
++ 	/* Initialize cpu_port_mask now for drv->setup()
++ 	 * to have access to a correct value, just like what
++@@ -526,6 +533,29 @@ static int dsa_cpu_parse(struct dsa_port *port, u32 index,
++ 
++ 	dst->rcv = dst->tag_ops->rcv;
++ 
+++	dev_hold(ethernet_dev);
+++	ds->ports[index].ethernet = ethernet_dev;
+++	ds->cpu_port_mask |= BIT(index);
+++
+++	return 0;
+++}
+++
+++static int dsa_user_parse(struct dsa_port *port, u32 index,
+++			  struct dsa_switch *ds)
+++{
+++	struct device_node *cpu_port;
+++	const unsigned int *cpu_port_reg;
+++	int cpu_port_index;
+++
+++	cpu_port = of_parse_phandle(port->dn, "cpu", 0);
+++	if (cpu_port) {
+++		cpu_port_reg = of_get_property(cpu_port, "reg", NULL);
+++		if (!cpu_port_reg)
+++			return -EINVAL;
+++		cpu_port_index = be32_to_cpup(cpu_port_reg);
+++		ds->ports[index].upstream = cpu_port_index;
+++	}
+++
++ 	return 0;
++ }
++ 
++@@ -533,7 +563,7 @@ static int dsa_ds_parse(struct dsa_switch_tree *dst, struct dsa_switch *ds)
++ {
++ 	struct dsa_port *port;
++ 	u32 index;
++-	int err;
+++	int err = 0;
++ 
++ 	for (index = 0; index < ds->num_ports; index++) {
++ 		port = &ds->ports[index];
++@@ -546,6 +576,9 @@ static int dsa_ds_parse(struct dsa_switch_tree *dst, struct dsa_switch *ds)
++ 			if (err)
++ 				return err;
++ 		} else {
+++			err = dsa_user_parse(port, index, ds);
+++			if (err)
+++				return err;
++ 			/* Initialize enabled_port_mask now for drv->setup()
++ 			 * to have access to a correct value, just like what
++ 			 * net/dsa/dsa.c::dsa_switch_setup_one does.
++diff --git a/net/dsa/dsa_priv.h b/net/dsa/dsa_priv.h
++index 9c3eeb72462d..03b3f4fde24b 100644
++--- a/net/dsa/dsa_priv.h
+++++ b/net/dsa/dsa_priv.h
++@@ -91,6 +91,8 @@ struct dsa_slave_priv {
++ 
++ 	/* TC context */
++ 	struct list_head	mall_tc_list;
+++
+++	struct net_device       *master;
++ };
++ 
++ /* dsa.c */
++@@ -177,6 +179,9 @@ extern const struct dsa_device_ops trailer_netdev_ops;
++ 
++ static inline struct net_device *dsa_master_netdev(struct dsa_slave_priv *p)
++ {
+++	if (p->master)
+++		return p->master;
+++
++ 	return p->dp->cpu_dp->netdev;
++ }
++ 
++diff --git a/net/dsa/slave.c b/net/dsa/slave.c
++index 865e29e62bad..240bcb8c23e1 100644
++--- a/net/dsa/slave.c
+++++ b/net/dsa/slave.c
++@@ -1257,7 +1257,7 @@ int dsa_slave_create(struct dsa_port *port, const char *name)
++ 	int ret;
++ 
++ 	cpu_dp = ds->dst->cpu_dp;
++-	master = cpu_dp->netdev;
+++	master = ds->ports[port->upstream].ethernet;
++ 
++ 	if (!ds->num_tx_queues)
++ 		ds->num_tx_queues = 1;
++@@ -1295,6 +1295,7 @@ int dsa_slave_create(struct dsa_port *port, const char *name)
++ 	p->dp = port;
++ 	INIT_LIST_HEAD(&p->mall_tc_list);
++ 	p->xmit = dst->tag_ops->xmit;
+++	p->master = master;
++ 
++ 	p->old_pause = -1;
++ 	p->old_link = -1;
+ -- 
+ 2.17.1
+ 
+diff --git a/target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch b/target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch
+index 45ec8094d4..d4e584f66b 100644
+--- a/target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch
++++ b/target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch
+@@ -1,4 +1,4 @@
+-From 3e45b08c39176b29b6a2394cd41fbbdebe1ab70b Mon Sep 17 00:00:00 2001
++From 5d7a901e372e30809e81c20c3094e56743b90dfe Mon Sep 17 00:00:00 2001
+ From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+ Date: Wed, 25 Jul 2018 13:52:56 +0200
+ Subject: [PATCH] at803x: advertise fiber support.
+@@ -9,50 +9,49 @@ Content-Transfer-Encoding: 8bit
+ Also adding ethtool support.
+ Signed-off-by: René van Dorst <opensource@vdorst.com>
+ ---
+- drivers/net/phy/at803x.c | 51 +++++++++++++++++++++++++++++++++++++++-
+- 1 file changed, 50 insertions(+), 1 deletion(-)
++ drivers/net/phy/at803x.c | 54 +++++++++++++++++++++++++++++++++++++---
++ 1 file changed, 51 insertions(+), 3 deletions(-)
+ 
+ diff --git a/drivers/net/phy/at803x.c b/drivers/net/phy/at803x.c
+-index 584bf34ef721..b8bf14a3ef4e 100644
++index 584bf34ef721..d801c99a74ec 100644
+ --- a/drivers/net/phy/at803x.c
+ +++ b/drivers/net/phy/at803x.c
+ @@ -82,6 +82,16 @@ MODULE_DESCRIPTION("Atheros 803x PHY driver");
+  MODULE_AUTHOR("Matus Ujhelyi");
+  MODULE_LICENSE("GPL");
+  
+-+struct at803x_hw_stat {
+++struct at803x_phy_hw_stat {
+ +	const char *string;
+ +	u8 reg;
+ +	u8 bits;
+ +};
+ +
+-+static struct at803x_hw_stat at803x_hw_stats[] = {
+++static struct at803x_phy_hw_stat at803x_hw_stats[] = {
+ +	{ "phy_idle_errors", 10, 8 },
+ +};
+ +
+  struct at803x_priv {
+  	bool phy_reset:1;
+  	struct gpio_desc *gpiod_reset;
+-@@ -97,6 +107,41 @@ struct at803x_context {
++@@ -97,6 +107,40 @@ struct at803x_context {
+  	u16 led_control;
+  };
+  
+-+
+ +static int at803x_phy_get_sset_count(struct phy_device *phydev)
+ +{
+-+	return ARRAY_SIZE(at803x_hw_stat);
+++	return ARRAY_SIZE(at803x_hw_stats);
+ +}
+ +
+ +static void at803x_phy_get_strings(struct phy_device *phydev, u8 *data)
+ +{
+ +	unsigned int i;
+ +
+-+	for (i = 0; i < ARRAY_SIZE(at803x_phy_hw_stats); i++)
+++	for (i = 0; i < ARRAY_SIZE(at803x_hw_stats); i++)
+ +		memcpy(data + i * ETH_GSTRING_LEN,
+-+		       at803x_phy_hw_stats[i].string, ETH_GSTRING_LEN);
+++		       at803x_hw_stats[i].string, ETH_GSTRING_LEN);
+ +}
+ +
+-+static void at803x_phy_get_stats(struct phy_device *phydev, u64 *shadow,
+++static void at803x_phy_get_stats(struct phy_device *phydev,
+ +		       struct ethtool_stats *stats, u64 *data)
+ +{
+ +	unsigned int i;
+@@ -60,22 +59,22 @@ index 584bf34ef721..b8bf14a3ef4e 100644
+ +	struct at803x_phy_hw_stat stat;
+ +	u64 ret;
+ +
+-+	for (i = 0; i < ARRAY_SIZE(at803x_phy_hw_stats); i++) {
+-+		stat = at803x_phy_hw_stats[i];
+++	for (i = 0; i < ARRAY_SIZE(at803x_hw_stats); i++) {
+++		stat = at803x_hw_stats[i];
+ +		val = phy_read(phydev, stat.reg);
+ +		if (val < 0) {
+-+			ret = UINT64_MAX;
+++			ret = U64_MAX;
+ +		} else {
+-+			val >>= stat.shift;
+ +			ret = val & ((1 << stat.bits) - 1);
+ +		}
+ +		data[i] = ret;
+++	}
+ +}
+ +
+  static int at803x_debug_reg_read(struct phy_device *phydev, u16 reg)
+  {
+  	int ret;
+-@@ -521,13 +566,17 @@ static struct phy_driver at803x_driver[] = {
++@@ -521,13 +565,17 @@ static struct phy_driver at803x_driver[] = {
+  	.get_wol		= at803x_get_wol,
+  	.suspend		= at803x_suspend,
+  	.resume			= at803x_resume,
+@@ -85,12 +84,14 @@ index 584bf34ef721..b8bf14a3ef4e 100644
+  	.config_aneg		= genphy_config_aneg,
+  	.read_status		= genphy_read_status,
+  	.aneg_done		= at803x_aneg_done,
+- 	.ack_interrupt		= &at803x_ack_interrupt,
+- 	.config_intr		= &at803x_config_intr,
++-	.ack_interrupt		= &at803x_ack_interrupt,
++-	.config_intr		= &at803x_config_intr,
+++	.ack_interrupt		= at803x_ack_interrupt,
+++	.config_intr		= at803x_config_intr,
+ +	.set_loopback		= genphy_loopback,
+-+	.get_sset_count		= at803x_get_sset_count,
+-+	.get_strings		= at803x_get_strings,
+-+	.get_stats		= at803x_get_stats,
+++	.get_sset_count		= at803x_phy_get_sset_count,
+++	.get_strings		= at803x_phy_get_strings,
+++	.get_stats		= at803x_phy_get_stats,
+  }, {
+  	/* ATHEROS 8032 */
+  	.phy_id			= ATH8032_PHY_ID,
+-- 
+2.20.1
+

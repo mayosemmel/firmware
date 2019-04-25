@@ -1,0 +1,58 @@
+From cfc63af0942c1ccc8ec543127117c6e174195c01 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+Date: Thu, 19 Jul 2018 12:55:55 +0200
+Subject: [PATCH 1/9] ramips: Convert gpio-export to platform driver.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Without this patch you will get an error "gpio-export probe deferral not supported" when you try to export i2c expander gpio pins.
+
+gpio-export is probed long before i2c-bus and i2c expander are created and it doesn't retry it so none pins are exported.
+
+Signed-off-by: René van Dorst <opensource@vdorst.com>
+---
+ .../0024-GPIO-add-named-gpio-exports.patch            | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch b/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
+index 10ca24bc71..ea93538a4c 100644
+--- a/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
++++ b/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
+@@ -22,7 +22,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
+  
+  #include "gpiolib.h"
+  
+-@@ -506,3 +508,71 @@ void of_gpiochip_remove(struct gpio_chip
++@@ -506,3 +508,68 @@ void of_gpiochip_remove(struct gpio_chip
+  	gpiochip_remove_pin_ranges(chip);
+  	of_node_put(chip->of_node);
+  }
+@@ -32,7 +32,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
+ +	{ /* sentinel */ }
+ +};
+ +
+-+static int __init of_gpio_export_probe(struct platform_device *pdev)
+++static int of_gpio_export_probe(struct platform_device *pdev)
+ +{
+ +	struct device_node *np = pdev->dev.of_node;
+ +	struct device_node *cnp;
+@@ -87,13 +87,10 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
+ +		.owner	= THIS_MODULE,
+ +		.of_match_table	= of_match_ptr(gpio_export_ids),
+ +	},
+++	.probe		= of_gpio_export_probe,
+ +};
+ +
+-+static int __init of_gpio_export_init(void)
+-+{
+-+	return platform_driver_probe(&gpio_export_driver, of_gpio_export_probe);
+-+}
+-+device_initcall(of_gpio_export_init);
+++module_platform_driver(gpio_export_driver);
+ --- a/drivers/gpio/gpiolib-sysfs.c
+ +++ b/drivers/gpio/gpiolib-sysfs.c
+ @@ -553,7 +553,7 @@ static struct class gpio_class = {
+-- 
+2.20.1
+

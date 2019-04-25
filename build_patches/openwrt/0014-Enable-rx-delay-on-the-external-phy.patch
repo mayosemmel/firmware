@@ -1,0 +1,25 @@
+From f78e4b9d8ac9c888d31331c67240c9f2296194ff Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+Date: Mon, 30 Jul 2018 22:14:16 +0200
+Subject: [PATCH 6/9] Enable rx delay on the external phy.
+
+---
+ target/linux/ramips/dts/UBNT-ER-e50.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/target/linux/ramips/dts/UBNT-ER-e50.dtsi b/target/linux/ramips/dts/UBNT-ER-e50.dtsi
+index d76e1418b0..a939fb20b3 100644
+--- a/target/linux/ramips/dts/UBNT-ER-e50.dtsi
++++ b/target/linux/ramips/dts/UBNT-ER-e50.dtsi
+@@ -89,7 +89,7 @@
+ 		#size-cells = <0>;
+ 		ephy5: ethernet-phy@7 {
+ 			reg = <7>;
+-			phy-mode = "rgmii";
++			phy-mode = "rgmii-rxid";
+ 		};
+ 	};
+ };
+-- 
+2.20.1
+

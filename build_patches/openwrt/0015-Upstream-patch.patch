@@ -1,0 +1,33 @@
+From bb0905d2195964539b1851ed93ee0891ad201cf8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+Date: Mon, 30 Jul 2018 22:15:03 +0200
+Subject: [PATCH 7/9] Upstream patch
+
+---
+ .../2104-net-phy-fix-flags-masking.patch           | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 target/linux/ramips/patches-4.14/2104-net-phy-fix-flags-masking.patch
+
+diff --git a/target/linux/ramips/patches-4.14/2104-net-phy-fix-flags-masking.patch b/target/linux/ramips/patches-4.14/2104-net-phy-fix-flags-masking.patch
+new file mode 100644
+index 0000000000..a2bed915b7
+--- /dev/null
++++ b/target/linux/ramips/patches-4.14/2104-net-phy-fix-flags-masking.patch
+@@ -0,0 +1,14 @@
++diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
++index 86e58398e58d..fe0be03f4c70 100644
++--- a/drivers/net/phy/phy_device.c
+++++ b/drivers/net/phy/phy_device.c
++@@ -1696,7 +1696,8 @@ static int __set_phy_supported(struct phy_device *phydev, u32 max_speed)
++ 	 * driver "features" member, we want to reset to sane defaults first
++ 	 * before supporting higher speeds.
++ 	 */
++-	phydev->supported &= PHY_DEFAULT_FEATURES;
+++	phydev->supported &= ~(PHY_1000BT_FEATURES | PHY_100BT_FEATURES |
+++			       PHY_10BT_FEATURES);
++ 
++ 	switch (max_speed) {
++ 	default:
+-- 
+2.20.1
+
