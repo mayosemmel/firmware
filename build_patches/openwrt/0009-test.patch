@@ -320,32 +320,32 @@ unchanged:
 + drivers/clk/mediatek/clk-pll.c              |   13 +-
 + drivers/net/dsa/mt7530.c                    |   65 +-
 + drivers/net/dsa/mt7530.h                    |    4 +
-+ drivers/net/ethernet/mediatek/Kconfig       |   77 +-
-+ drivers/net/ethernet/mediatek/Makefile      |   21 +-
-+ drivers/net/ethernet/mediatek/esw_rt3050.c  | 1461 --------
-+ drivers/net/ethernet/mediatek/esw_rt3050.h  |   29 -
-+ drivers/net/ethernet/mediatek/ethtool.c     |  230 --
-+ drivers/net/ethernet/mediatek/ethtool.h     |   22 -
-+ drivers/net/ethernet/mediatek/gsw_mt7620.c  |  260 --
-+ drivers/net/ethernet/mediatek/gsw_mt7620.h  |  127 -
-+ drivers/net/ethernet/mediatek/gsw_mt7621.c  |  281 --
-+ drivers/net/ethernet/mediatek/mdio.c        |  260 --
-+ drivers/net/ethernet/mediatek/mdio.h        |   27 -
-+ drivers/net/ethernet/mediatek/mdio_mt7620.c |  168 -
-+ drivers/net/ethernet/mediatek/mdio_rt2880.c |  222 --
-+ drivers/net/ethernet/mediatek/mdio_rt2880.h |   23 -
-+ drivers/net/ethernet/mediatek/mt7530.c      |  979 ------
-+ drivers/net/ethernet/mediatek/mt7530.h      |  186 -
-+ drivers/net/ethernet/mediatek/mtk_debugfs.c |  115 -
-+ drivers/net/ethernet/mediatek/mtk_eth_soc.c | 3462 ++++++++++++-------
-+ drivers/net/ethernet/mediatek/mtk_eth_soc.h | 1104 +++---
-+ drivers/net/ethernet/mediatek/mtk_offload.c |  526 ---
-+ drivers/net/ethernet/mediatek/mtk_offload.h |  260 --
-+ drivers/net/ethernet/mediatek/soc_mt7620.c  |  335 --
-+ drivers/net/ethernet/mediatek/soc_mt7621.c  |  186 -
-+ drivers/net/ethernet/mediatek/soc_rt2880.c  |   76 -
-+ drivers/net/ethernet/mediatek/soc_rt3050.c  |  158 -
-+ drivers/net/ethernet/mediatek/soc_rt3883.c  |   75 -
++ drivers/net/ethernet/mtk/Kconfig       |   77 +-
++ drivers/net/ethernet/mtk/Makefile      |   21 +-
++ drivers/net/ethernet/mtk/esw_rt3050.c  | 1461 --------
++ drivers/net/ethernet/mtk/esw_rt3050.h  |   29 -
++ drivers/net/ethernet/mtk/ethtool.c     |  230 --
++ drivers/net/ethernet/mtk/ethtool.h     |   22 -
++ drivers/net/ethernet/mtk/gsw_mt7620.c  |  260 --
++ drivers/net/ethernet/mtk/gsw_mt7620.h  |  127 -
++ drivers/net/ethernet/mtk/gsw_mt7621.c  |  281 --
++ drivers/net/ethernet/mtk/mdio.c        |  260 --
++ drivers/net/ethernet/mtk/mdio.h        |   27 -
++ drivers/net/ethernet/mtk/mdio_mt7620.c |  168 -
++ drivers/net/ethernet/mtk/mdio_rt2880.c |  222 --
++ drivers/net/ethernet/mtk/mdio_rt2880.h |   23 -
++ drivers/net/ethernet/mtk/mt7530.c      |  979 ------
++ drivers/net/ethernet/mtk/mt7530.h      |  186 -
++ drivers/net/ethernet/mtk/mtk_debugfs.c |  115 -
++ drivers/net/ethernet/mtk/mtk_eth_soc.c | 3462 ++++++++++++-------
++ drivers/net/ethernet/mtk/mtk_eth_soc.h | 1104 +++---
++ drivers/net/ethernet/mtk/mtk_offload.c |  526 ---
++ drivers/net/ethernet/mtk/mtk_offload.h |  260 --
++ drivers/net/ethernet/mtk/soc_mt7620.c  |  335 --
++ drivers/net/ethernet/mtk/soc_mt7621.c  |  186 -
++ drivers/net/ethernet/mtk/soc_rt2880.c  |   76 -
++ drivers/net/ethernet/mtk/soc_rt3050.c  |  158 -
++ drivers/net/ethernet/mtk/soc_rt3883.c  |   75 -
 + drivers/net/phy/phy.c                       |   15 +-
 + drivers/net/phy/phy_device.c                |    2 +-
 + 49 files changed, 6511 insertions(+), 7848 deletions(-)
@@ -361,28 +361,28 @@ unchanged:
 + create mode 100644 drivers/clk/mediatek/clk-mt7622-eth.c
 + create mode 100644 drivers/clk/mediatek/clk-mt7622-hif.c
 + create mode 100644 drivers/clk/mediatek/clk-mt7622.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/esw_rt3050.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/esw_rt3050.h
-+ delete mode 100644 drivers/net/ethernet/mediatek/ethtool.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/ethtool.h
-+ delete mode 100644 drivers/net/ethernet/mediatek/gsw_mt7620.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/gsw_mt7620.h
-+ delete mode 100644 drivers/net/ethernet/mediatek/gsw_mt7621.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/mdio.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/mdio.h
-+ delete mode 100644 drivers/net/ethernet/mediatek/mdio_mt7620.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/mdio_rt2880.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/mdio_rt2880.h
-+ delete mode 100644 drivers/net/ethernet/mediatek/mt7530.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/mt7530.h
-+ delete mode 100644 drivers/net/ethernet/mediatek/mtk_debugfs.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/mtk_offload.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/mtk_offload.h
-+ delete mode 100644 drivers/net/ethernet/mediatek/soc_mt7620.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/soc_mt7621.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/soc_rt2880.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/soc_rt3050.c
-+ delete mode 100644 drivers/net/ethernet/mediatek/soc_rt3883.c
++ delete mode 100644 drivers/net/ethernet/mtk/esw_rt3050.c
++ delete mode 100644 drivers/net/ethernet/mtk/esw_rt3050.h
++ delete mode 100644 drivers/net/ethernet/mtk/ethtool.c
++ delete mode 100644 drivers/net/ethernet/mtk/ethtool.h
++ delete mode 100644 drivers/net/ethernet/mtk/gsw_mt7620.c
++ delete mode 100644 drivers/net/ethernet/mtk/gsw_mt7620.h
++ delete mode 100644 drivers/net/ethernet/mtk/gsw_mt7621.c
++ delete mode 100644 drivers/net/ethernet/mtk/mdio.c
++ delete mode 100644 drivers/net/ethernet/mtk/mdio.h
++ delete mode 100644 drivers/net/ethernet/mtk/mdio_mt7620.c
++ delete mode 100644 drivers/net/ethernet/mtk/mdio_rt2880.c
++ delete mode 100644 drivers/net/ethernet/mtk/mdio_rt2880.h
++ delete mode 100644 drivers/net/ethernet/mtk/mt7530.c
++ delete mode 100644 drivers/net/ethernet/mtk/mt7530.h
++ delete mode 100644 drivers/net/ethernet/mtk/mtk_debugfs.c
++ delete mode 100644 drivers/net/ethernet/mtk/mtk_offload.c
++ delete mode 100644 drivers/net/ethernet/mtk/mtk_offload.h
++ delete mode 100644 drivers/net/ethernet/mtk/soc_mt7620.c
++ delete mode 100644 drivers/net/ethernet/mtk/soc_mt7621.c
++ delete mode 100644 drivers/net/ethernet/mtk/soc_rt2880.c
++ delete mode 100644 drivers/net/ethernet/mtk/soc_rt3050.c
++ delete mode 100644 drivers/net/ethernet/mtk/soc_rt3883.c
 +
 +diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
 +index f7f761b02bed..2e3fb08352a7 100644
@@ -4436,10 +4436,10 @@ unchanged:
 + /* Registers to ethsys access */
 + #define ETHSYS_CLKCFG0			0x2c
 + #define  ETHSYS_TRGMII_CLK_SEL362_5	BIT(11)
-+diff --git a/drivers/net/ethernet/mediatek/Kconfig b/drivers/net/ethernet/mediatek/Kconfig
++diff --git a/drivers/net/ethernet/mtk/Kconfig b/drivers/net/ethernet/mtk/Kconfig
 +index 822806fd856f..f9149d2a4694 100644
-+--- a/drivers/net/ethernet/mediatek/Kconfig
-++++ b/drivers/net/ethernet/mediatek/Kconfig
++--- a/drivers/net/ethernet/mtk/Kconfig
+++++ b/drivers/net/ethernet/mtk/Kconfig
 +@@ -1,70 +1,17 @@
 + config NET_VENDOR_MEDIATEK
 +-	tristate "Mediatek/Ralink ethernet driver"
@@ -4523,10 +4523,10 @@ unchanged:
 +-	depends on NET_MEDIATEK_MT7621
 +-endif
 ++endif #NET_VENDOR_MEDIATEK
-+diff --git a/drivers/net/ethernet/mediatek/Makefile b/drivers/net/ethernet/mediatek/Makefile
++diff --git a/drivers/net/ethernet/mtk/Makefile b/drivers/net/ethernet/mtk/Makefile
 +index b038ae369948..aa3f1c8ccd4a 100644
-+--- a/drivers/net/ethernet/mediatek/Makefile
-++++ b/drivers/net/ethernet/mediatek/Makefile
++--- a/drivers/net/ethernet/mtk/Makefile
+++++ b/drivers/net/ethernet/mtk/Makefile
 +@@ -1,22 +1,5 @@
 + #
 +-# Makefile for the Ralink SoCs built-in ethernet macs
@@ -4552,10 +4552,10 @@ unchanged:
 +-obj-$(CONFIG_NET_MEDIATEK_GSW_MT7621)		+= gsw_mt7621.o mt7530.o
 +-obj-$(CONFIG_NET_MEDIATEK_SOC)			+= mtk-eth-soc.o
 ++obj-$(CONFIG_NET_MEDIATEK_SOC)			+= mtk_eth_soc.o
-+diff --git a/drivers/net/ethernet/mediatek/esw_rt3050.c b/drivers/net/ethernet/mediatek/esw_rt3050.c
++diff --git a/drivers/net/ethernet/mtk/esw_rt3050.c b/drivers/net/ethernet/mtk/esw_rt3050.c
 +deleted file mode 100644
 +index 816c588dd7f2..000000000000
-+--- a/drivers/net/ethernet/mediatek/esw_rt3050.c
++--- a/drivers/net/ethernet/mtk/esw_rt3050.c
 ++++ /dev/null
 +@@ -1,1461 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -6019,10 +6019,10 @@ unchanged:
 +-MODULE_AUTHOR("John Crispin <blogic@openwrt.org>");
 +-MODULE_DESCRIPTION("Switch driver for RT305X SoC");
 +-MODULE_VERSION(MTK_FE_DRV_VERSION);
-+diff --git a/drivers/net/ethernet/mediatek/esw_rt3050.h b/drivers/net/ethernet/mediatek/esw_rt3050.h
++diff --git a/drivers/net/ethernet/mtk/esw_rt3050.h b/drivers/net/ethernet/mtk/esw_rt3050.h
 +deleted file mode 100644
 +index b757e5d63946..000000000000
-+--- a/drivers/net/ethernet/mediatek/esw_rt3050.h
++--- a/drivers/net/ethernet/mtk/esw_rt3050.h
 ++++ /dev/null
 +@@ -1,29 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -6054,10 +6054,10 @@ unchanged:
 +-
 +-#endif
 +-#endif
-+diff --git a/drivers/net/ethernet/mediatek/ethtool.c b/drivers/net/ethernet/mediatek/ethtool.c
++diff --git a/drivers/net/ethernet/mtk/ethtool.c b/drivers/net/ethernet/mtk/ethtool.c
 +deleted file mode 100644
 +index 5732c28536c2..000000000000
-+--- a/drivers/net/ethernet/mediatek/ethtool.c
++--- a/drivers/net/ethernet/mtk/ethtool.c
 ++++ /dev/null
 +@@ -1,230 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -6290,10 +6290,10 @@ unchanged:
 +-
 +-	netdev->ethtool_ops = &fe_ethtool_ops;
 +-}
-+diff --git a/drivers/net/ethernet/mediatek/ethtool.h b/drivers/net/ethernet/mediatek/ethtool.h
++diff --git a/drivers/net/ethernet/mtk/ethtool.h b/drivers/net/ethernet/mtk/ethtool.h
 +deleted file mode 100644
 +index 6fd16f0b663f..000000000000
-+--- a/drivers/net/ethernet/mediatek/ethtool.h
++--- a/drivers/net/ethernet/mtk/ethtool.h
 ++++ /dev/null
 +@@ -1,22 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -6318,10 +6318,10 @@ unchanged:
 +-void fe_set_ethtool_ops(struct net_device *netdev);
 +-
 +-#endif /* FE_ETHTOOL_H */
-+diff --git a/drivers/net/ethernet/mediatek/gsw_mt7620.c b/drivers/net/ethernet/mediatek/gsw_mt7620.c
++diff --git a/drivers/net/ethernet/mtk/gsw_mt7620.c b/drivers/net/ethernet/mtk/gsw_mt7620.c
 +deleted file mode 100644
 +index a4602c45868f..000000000000
-+--- a/drivers/net/ethernet/mediatek/gsw_mt7620.c
++--- a/drivers/net/ethernet/mtk/gsw_mt7620.c
 ++++ /dev/null
 +@@ -1,260 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -6584,10 +6584,10 @@ unchanged:
 +-MODULE_AUTHOR("John Crispin <blogic@openwrt.org>");
 +-MODULE_DESCRIPTION("GBit switch driver for Mediatek MT7620 SoC");
 +-MODULE_VERSION(MTK_FE_DRV_VERSION);
-+diff --git a/drivers/net/ethernet/mediatek/gsw_mt7620.h b/drivers/net/ethernet/mediatek/gsw_mt7620.h
++diff --git a/drivers/net/ethernet/mtk/gsw_mt7620.h b/drivers/net/ethernet/mtk/gsw_mt7620.h
 +deleted file mode 100644
 +index ae0b6de02416..000000000000
-+--- a/drivers/net/ethernet/mediatek/gsw_mt7620.h
++--- a/drivers/net/ethernet/mtk/gsw_mt7620.h
 ++++ /dev/null
 +@@ -1,127 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -6717,10 +6717,10 @@ unchanged:
 +-void mt7620_handle_carrier(struct fe_priv *priv);
 +-
 +-#endif
-+diff --git a/drivers/net/ethernet/mediatek/gsw_mt7621.c b/drivers/net/ethernet/mediatek/gsw_mt7621.c
++diff --git a/drivers/net/ethernet/mtk/gsw_mt7621.c b/drivers/net/ethernet/mtk/gsw_mt7621.c
 +deleted file mode 100644
 +index 89be23900738..000000000000
-+--- a/drivers/net/ethernet/mediatek/gsw_mt7621.c
++--- a/drivers/net/ethernet/mtk/gsw_mt7621.c
 ++++ /dev/null
 +@@ -1,281 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -7004,10 +7004,10 @@ unchanged:
 +-MODULE_AUTHOR("John Crispin <blogic@openwrt.org>");
 +-MODULE_DESCRIPTION("GBit switch driver for Mediatek MT7621 SoC");
 +-MODULE_VERSION(MTK_FE_DRV_VERSION);
-+diff --git a/drivers/net/ethernet/mediatek/mdio.c b/drivers/net/ethernet/mediatek/mdio.c
++diff --git a/drivers/net/ethernet/mtk/mdio.c b/drivers/net/ethernet/mtk/mdio.c
 +deleted file mode 100644
 +index bdfdf7a432c7..000000000000
-+--- a/drivers/net/ethernet/mediatek/mdio.c
++--- a/drivers/net/ethernet/mtk/mdio.c
 ++++ /dev/null
 +@@ -1,260 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -7270,10 +7270,10 @@ unchanged:
 +-	of_node_put(priv->mii_bus->dev.of_node);
 +-	kfree(priv->mii_bus);
 +-}
-+diff --git a/drivers/net/ethernet/mediatek/mdio.h b/drivers/net/ethernet/mediatek/mdio.h
++diff --git a/drivers/net/ethernet/mtk/mdio.h b/drivers/net/ethernet/mtk/mdio.h
 +deleted file mode 100644
 +index 498cf144e631..000000000000
-+--- a/drivers/net/ethernet/mediatek/mdio.h
++--- a/drivers/net/ethernet/mtk/mdio.h
 ++++ /dev/null
 +@@ -1,27 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -7303,10 +7303,10 @@ unchanged:
 +-static inline void fe_mdio_cleanup(struct fe_priv *priv) {}
 +-#endif
 +-#endif
-+diff --git a/drivers/net/ethernet/mediatek/mdio_mt7620.c b/drivers/net/ethernet/mediatek/mdio_mt7620.c
++diff --git a/drivers/net/ethernet/mtk/mdio_mt7620.c b/drivers/net/ethernet/mtk/mdio_mt7620.c
 +deleted file mode 100644
 +index 9efe7896a581..000000000000
-+--- a/drivers/net/ethernet/mediatek/mdio_mt7620.c
++--- a/drivers/net/ethernet/mtk/mdio_mt7620.c
 ++++ /dev/null
 +@@ -1,168 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -7477,10 +7477,10 @@ unchanged:
 +-				(priv->phy->duplex[port] == DUPLEX_FULL));
 +-	mt7620_handle_carrier(priv);
 +-}
-+diff --git a/drivers/net/ethernet/mediatek/mdio_rt2880.c b/drivers/net/ethernet/mediatek/mdio_rt2880.c
++diff --git a/drivers/net/ethernet/mtk/mdio_rt2880.c b/drivers/net/ethernet/mtk/mdio_rt2880.c
 +deleted file mode 100644
 +index e53fd7f62889..000000000000
-+--- a/drivers/net/ethernet/mediatek/mdio_rt2880.c
++--- a/drivers/net/ethernet/mtk/mdio_rt2880.c
 ++++ /dev/null
 +@@ -1,222 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -7705,10 +7705,10 @@ unchanged:
 +-	if (priv->phy->phy_node[0] && mdiobus_get_phy(priv->mii_bus, 0))
 +-		fe_connect_phy_node(priv, priv->phy->phy_node[0]);
 +-}
-+diff --git a/drivers/net/ethernet/mediatek/mdio_rt2880.h b/drivers/net/ethernet/mediatek/mdio_rt2880.h
++diff --git a/drivers/net/ethernet/mtk/mdio_rt2880.h b/drivers/net/ethernet/mtk/mdio_rt2880.h
 +deleted file mode 100644
 +index 70e344283e59..000000000000
-+--- a/drivers/net/ethernet/mediatek/mdio_rt2880.h
++--- a/drivers/net/ethernet/mtk/mdio_rt2880.h
 ++++ /dev/null
 +@@ -1,23 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -7734,10 +7734,10 @@ unchanged:
 +-void rt2880_port_init(struct fe_priv *priv, struct device_node *np);
 +-
 +-#endif
-+diff --git a/drivers/net/ethernet/mediatek/mt7530.c b/drivers/net/ethernet/mediatek/mt7530.c
++diff --git a/drivers/net/ethernet/mtk/mt7530.c b/drivers/net/ethernet/mtk/mt7530.c
 +deleted file mode 100644
 +index 5216cb5c6618..000000000000
-+--- a/drivers/net/ethernet/mediatek/mt7530.c
++--- a/drivers/net/ethernet/mtk/mt7530.c
 ++++ /dev/null
 +@@ -1,979 +0,0 @@
 +-/*
@@ -8719,10 +8719,10 @@ unchanged:
 +-
 +-	return 0;
 +-}
-+diff --git a/drivers/net/ethernet/mediatek/mt7530.h b/drivers/net/ethernet/mediatek/mt7530.h
++diff --git a/drivers/net/ethernet/mtk/mt7530.h b/drivers/net/ethernet/mtk/mt7530.h
 +deleted file mode 100644
 +index cf725c2f2ba9..000000000000
-+--- a/drivers/net/ethernet/mediatek/mt7530.h
++--- a/drivers/net/ethernet/mtk/mt7530.h
 ++++ /dev/null
 +@@ -1,186 +0,0 @@
 +-/*
@@ -8911,10 +8911,10 @@ unchanged:
 +-int mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vlan);
 +-
 +-#endif
-+diff --git a/drivers/net/ethernet/mediatek/mtk_debugfs.c b/drivers/net/ethernet/mediatek/mtk_debugfs.c
++diff --git a/drivers/net/ethernet/mtk/mtk_debugfs.c b/drivers/net/ethernet/mtk/mtk_debugfs.c
 +deleted file mode 100644
 +index 2938119e891e..000000000000
-+--- a/drivers/net/ethernet/mediatek/mtk_debugfs.c
++--- a/drivers/net/ethernet/mtk/mtk_debugfs.c
 ++++ /dev/null
 +@@ -1,115 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -9032,10 +9032,10 @@ unchanged:
 +-
 +-	return 0;
 +-}
-+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++diff --git a/drivers/net/ethernet/mtk/mtk_eth_soc.c b/drivers/net/ethernet/mtk/mtk_eth_soc.c
 +index 8bf17f629c2f..b5f3241d48b0 100644
-+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++--- a/drivers/net/ethernet/mtk/mtk_eth_soc.c
+++++ b/drivers/net/ethernet/mtk/mtk_eth_soc.c
 +@@ -7,902 +7,1035 @@
 +  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 +  *   GNU General Public License for more details.
@@ -12978,10 +12978,10 @@ unchanged:
 +-MODULE_DESCRIPTION("Ethernet driver for Ralink SoC");
 +-MODULE_VERSION(MTK_FE_DRV_VERSION);
 ++MODULE_DESCRIPTION("Ethernet driver for MediaTek SoC");
-+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++diff --git a/drivers/net/ethernet/mtk/mtk_eth_soc.h b/drivers/net/ethernet/mtk/mtk_eth_soc.h
 +index c42126116fc6..8c657616a102 100644
-+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
-++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++--- a/drivers/net/ethernet/mtk/mtk_eth_soc.h
+++++ b/drivers/net/ethernet/mtk/mtk_eth_soc.h
 +@@ -7,527 +7,683 @@
 +  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 +  *   GNU General Public License for more details.
@@ -14140,10 +14140,10 @@ unchanged:
 + 
 +-#endif /* FE_ETH_H */
 ++#endif /* MTK_ETH_H */
-+diff --git a/drivers/net/ethernet/mediatek/mtk_offload.c b/drivers/net/ethernet/mediatek/mtk_offload.c
++diff --git a/drivers/net/ethernet/mtk/mtk_offload.c b/drivers/net/ethernet/mtk/mtk_offload.c
 +deleted file mode 100644
 +index 3001c081f7c4..000000000000
-+--- a/drivers/net/ethernet/mediatek/mtk_offload.c
++--- a/drivers/net/ethernet/mtk/mtk_offload.c
 ++++ /dev/null
 +@@ -1,526 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -14672,10 +14672,10 @@ unchanged:
 +-{
 +-	mtk_ppe_stop(eth);
 +-}
-+diff --git a/drivers/net/ethernet/mediatek/mtk_offload.h b/drivers/net/ethernet/mediatek/mtk_offload.h
++diff --git a/drivers/net/ethernet/mtk/mtk_offload.h b/drivers/net/ethernet/mtk/mtk_offload.h
 +deleted file mode 100644
 +index f714c90f9225..000000000000
-+--- a/drivers/net/ethernet/mediatek/mtk_offload.h
++--- a/drivers/net/ethernet/mtk/mtk_offload.h
 ++++ /dev/null
 +@@ -1,260 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -14938,10 +14938,10 @@ unchanged:
 +-int mtk_ppe_debugfs_init(struct mtk_eth *eth);
 +-
 +-
-+diff --git a/drivers/net/ethernet/mediatek/soc_mt7620.c b/drivers/net/ethernet/mediatek/soc_mt7620.c
++diff --git a/drivers/net/ethernet/mtk/soc_mt7620.c b/drivers/net/ethernet/mtk/soc_mt7620.c
 +deleted file mode 100644
 +index 7f728d142de4..000000000000
-+--- a/drivers/net/ethernet/mediatek/soc_mt7620.c
++--- a/drivers/net/ethernet/mtk/soc_mt7620.c
 ++++ /dev/null
 +@@ -1,335 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -15279,10 +15279,10 @@ unchanged:
 +-};
 +-
 +-MODULE_DEVICE_TABLE(of, of_fe_match);
-+diff --git a/drivers/net/ethernet/mediatek/soc_mt7621.c b/drivers/net/ethernet/mediatek/soc_mt7621.c
++diff --git a/drivers/net/ethernet/mtk/soc_mt7621.c b/drivers/net/ethernet/mtk/soc_mt7621.c
 +deleted file mode 100644
 +index 392e0ea2e588..000000000000
-+--- a/drivers/net/ethernet/mediatek/soc_mt7621.c
++--- a/drivers/net/ethernet/mtk/soc_mt7621.c
 ++++ /dev/null
 +@@ -1,186 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -15471,10 +15471,10 @@ unchanged:
 +-};
 +-
 +-MODULE_DEVICE_TABLE(of, of_fe_match);
-+diff --git a/drivers/net/ethernet/mediatek/soc_rt2880.c b/drivers/net/ethernet/mediatek/soc_rt2880.c
++diff --git a/drivers/net/ethernet/mtk/soc_rt2880.c b/drivers/net/ethernet/mtk/soc_rt2880.c
 +deleted file mode 100644
 +index 6c89c997d925..000000000000
-+--- a/drivers/net/ethernet/mediatek/soc_rt2880.c
++--- a/drivers/net/ethernet/mtk/soc_rt2880.c
 ++++ /dev/null
 +@@ -1,76 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -15553,10 +15553,10 @@ unchanged:
 +-};
 +-
 +-MODULE_DEVICE_TABLE(of, of_fe_match);
-+diff --git a/drivers/net/ethernet/mediatek/soc_rt3050.c b/drivers/net/ethernet/mediatek/soc_rt3050.c
++diff --git a/drivers/net/ethernet/mtk/soc_rt3050.c b/drivers/net/ethernet/mtk/soc_rt3050.c
 +deleted file mode 100644
 +index 914b81410e5c..000000000000
-+--- a/drivers/net/ethernet/mediatek/soc_rt3050.c
++--- a/drivers/net/ethernet/mtk/soc_rt3050.c
 ++++ /dev/null
 +@@ -1,158 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -15717,10 +15717,10 @@ unchanged:
 +-};
 +-
 +-MODULE_DEVICE_TABLE(of, of_fe_match);
-+diff --git a/drivers/net/ethernet/mediatek/soc_rt3883.c b/drivers/net/ethernet/mediatek/soc_rt3883.c
++diff --git a/drivers/net/ethernet/mtk/soc_rt3883.c b/drivers/net/ethernet/mtk/soc_rt3883.c
 +deleted file mode 100644
 +index 4935b7fbd43e..000000000000
-+--- a/drivers/net/ethernet/mediatek/soc_rt3883.c
++--- a/drivers/net/ethernet/mtk/soc_rt3883.c
 ++++ /dev/null
 +@@ -1,75 +0,0 @@
 +-/*   This program is free software; you can redistribute it and/or modify
@@ -16686,9 +16686,9 @@ unchanged:
 +Signed-off-by: René van Dorst <opensource@vdorst.com>
 +---
 + drivers/net/dsa/mt7530.c                    | 37 +++++++++-
-+ drivers/net/ethernet/mediatek/Kconfig       |  4 +-
-+ drivers/net/ethernet/mediatek/mtk_eth_soc.c | 79 ++++++++++++++++++++-
-+ drivers/net/ethernet/mediatek/mtk_eth_soc.h | 23 +++++-
++ drivers/net/ethernet/mtk/Kconfig       |  4 +-
++ drivers/net/ethernet/mtk/mtk_eth_soc.c | 79 ++++++++++++++++++++-
++ drivers/net/ethernet/mtk/mtk_eth_soc.h | 23 +++++-
 + 4 files changed, 135 insertions(+), 8 deletions(-)
 +
 +diff --git a/drivers/net/dsa/mt7530.c b/drivers/net/dsa/mt7530.c
@@ -16797,10 +16797,10 @@ unchanged:
 + 
 + 	/* Not MCM that indicates switch works as the remote standalone
 + 	 * integrated circuit so the GPIO pin would be used to complete
-+diff --git a/drivers/net/ethernet/mediatek/Kconfig b/drivers/net/ethernet/mediatek/Kconfig
++diff --git a/drivers/net/ethernet/mtk/Kconfig b/drivers/net/ethernet/mtk/Kconfig
 +index f9149d2a4694..2f00a59d8734 100644
-+--- a/drivers/net/ethernet/mediatek/Kconfig
-++++ b/drivers/net/ethernet/mediatek/Kconfig
++--- a/drivers/net/ethernet/mtk/Kconfig
+++++ b/drivers/net/ethernet/mtk/Kconfig
 +@@ -1,6 +1,6 @@
 + config NET_VENDOR_MEDIATEK
 + 	bool "MediaTek ethernet driver"
@@ -16818,10 +16818,10 @@ unchanged:
 + 	---help---
 + 	  This driver supports the gigabit ethernet MACs in the
 + 	  MediaTek SoC family.
-+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++diff --git a/drivers/net/ethernet/mtk/mtk_eth_soc.c b/drivers/net/ethernet/mtk/mtk_eth_soc.c
 +index b5f3241d48b0..1debf9eeb24c 100644
-+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++--- a/drivers/net/ethernet/mtk/mtk_eth_soc.c
+++++ b/drivers/net/ethernet/mtk/mtk_eth_soc.c
 +@@ -143,12 +143,16 @@ static int mtk_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 + static void mtk_gmac0_rgmii_adjust(struct mtk_eth *eth, int speed)
 + {
@@ -17053,10 +17053,10 @@ unchanged:
 + 	{ .compatible = "mediatek,mt7622-eth", .data = &mt7622_data},
 + 	{ .compatible = "mediatek,mt7623-eth", .data = &mt7623_data},
 + 	{},
-+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++diff --git a/drivers/net/ethernet/mtk/mtk_eth_soc.h b/drivers/net/ethernet/mtk/mtk_eth_soc.h
 +index 8c657616a102..747f715310ca 100644
-+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
-++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++--- a/drivers/net/ethernet/mtk/mtk_eth_soc.h
+++++ b/drivers/net/ethernet/mtk/mtk_eth_soc.h
 +@@ -364,18 +364,28 @@
 + #define ETHSYS_CHIPID4_7	0x4
 + #define MT7623_ETH		7623
