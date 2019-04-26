@@ -1,25 +1,44 @@
-From 17cc0bde7735f5a650f598857d0e31d8edf5a214 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
-Date: Thu, 26 Jul 2018 14:12:13 +0200
-Subject: [PATCH 2/9] Adding DSA patches
-
----
- target/linux/ramips/mt7621/config-4.14        |    99 +-
- .../2000-Patches-for-mt7623-tree.patch        | 15561 ++++++++++++++++
- ...001-Adding-MT7621-basic-syscon-clock.patch |   813 +
- .../2002-Adding-MT7621-DSA-support.patch      |   452 +
- .../2100-at803x-advertise-fiber-support.patch |    99 +
- 5 files changed, 17015 insertions(+), 9 deletions(-)
- create mode 100644 target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch
- create mode 100644 target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch
- create mode 100644 target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch
- create mode 100644 target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch
-
-diff --git a/target/linux/ramips/mt7621/config-4.14 b/target/linux/ramips/mt7621/config-4.14
-index 0e06023780..35065db6bd 100644
---- a/target/linux/ramips/mt7621/config-4.14
+unchanged:
+--- a/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
++++ b/target/linux/ramips/patches-4.14/0024-GPIO-add-named-gpio-exports.patch
+@@ -22,7 +22,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
+  
+  #include "gpiolib.h"
+  
+-@@ -506,3 +508,69 @@ void of_gpiochip_remove(struct gpio_chip
++@@ -506,3 +508,62 @@ void of_gpiochip_remove(struct gpio_chip
+  	gpiochip_remove_pin_ranges(chip);
+  	of_node_put(chip->of_node);
+  }
+@@ -32,7 +32,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
+ +	{ /* sentinel */ }
+ +};
+ +
+-+static int __init of_gpio_export_probe(struct platform_device *pdev)
+++static int of_gpio_export_probe(struct platform_device *pdev)
+ +{
+ +	struct device_node *np = pdev->dev.of_node;
+ +	struct device_node *cnp;
+@@ -85,13 +85,10 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
+ +		.owner	= THIS_MODULE,
+ +		.of_match_table	= of_match_ptr(gpio_export_ids),
+ +	},
+++	.probe		= of_gpio_export_probe,
+ +};
+ +
+-+static int __init of_gpio_export_init(void)
+-+{
+-+	return platform_driver_probe(&gpio_export_driver, of_gpio_export_probe);
+-+}
+-+device_initcall(of_gpio_export_init);
+++module_platform_driver(gpio_export_driver);
+ --- a/drivers/gpio/gpiolib-sysfs.c
+ +++ b/drivers/gpio/gpiolib-sysfs.c
+ @@ -553,7 +553,7 @@ static struct class gpio_class = {
+unchanged:
+--- b/target/linux/ramips/mt7621/config-4.14
 +++ b/target/linux/ramips/mt7621/config-4.14
-@@ -5,22 +5,32 @@ CONFIG_ARCH_HAS_ELF_RANDOMIZE=y
+@@ -5,28 +5,40 @@
  # CONFIG_ARCH_HAS_GCOV_PROFILE_ALL is not set
  CONFIG_ARCH_HAS_RESET_CONTROLLER=y
  # CONFIG_ARCH_HAS_SG_CHAIN is not set
@@ -54,7 +73,15 @@ index 0e06023780..35065db6bd 100644
  CONFIG_CLONE_BACKWARDS=y
  CONFIG_CMDLINE="rootfstype=squashfs,jffs2"
  CONFIG_CMDLINE_BOOL=y
-@@ -46,6 +56,7 @@ CONFIG_CPU_SUPPORTS_32BIT_KERNEL=y
+ # CONFIG_CMDLINE_OVERRIDE is not set
+ CONFIG_COMMON_CLK=y
+ # CONFIG_COMMON_CLK_BOSTON is not set
++CONFIG_COMMON_CLK_MT7621=y
++CONFIG_COMMON_CLK_MT7621_ETHSYS=y
+ CONFIG_CPU_GENERIC_DUMP_TLB=y
+ CONFIG_CPU_HAS_PREFETCH=y
+ CONFIG_CPU_HAS_RIXI=y
+@@ -46,6 +58,7 @@
  CONFIG_CPU_SUPPORTS_HIGHMEM=y
  CONFIG_CPU_SUPPORTS_MSA=y
  CONFIG_CRC16=y
@@ -62,7 +89,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_CRYPTO_AEAD=y
  CONFIG_CRYPTO_AEAD2=y
  CONFIG_CRYPTO_DEFLATE=y
-@@ -65,9 +76,12 @@ CONFIG_EARLY_PRINTK=y
+@@ -65,9 +78,12 @@
  CONFIG_FIXED_PHY=y
  CONFIG_GENERIC_ATOMIC64=y
  CONFIG_GENERIC_CLOCKEVENTS=y
@@ -75,7 +102,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_GENERIC_IRQ_IPI=y
  CONFIG_GENERIC_IRQ_SHOW=y
  CONFIG_GENERIC_PCI_IOMAP=y
-@@ -75,9 +89,13 @@ CONFIG_GENERIC_SCHED_CLOCK=y
+@@ -75,9 +91,13 @@
  CONFIG_GENERIC_SMP_IDLE_THREAD=y
  CONFIG_GENERIC_TIME_VSYSCALL=y
  CONFIG_GPIOLIB=y
@@ -89,7 +116,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_HANDLE_DOMAIN_IRQ=y
  CONFIG_HARDWARE_WATCHPOINTS=y
  CONFIG_HAS_DMA=y
-@@ -95,6 +113,7 @@ CONFIG_HAVE_CC_STACKPROTECTOR=y
+@@ -95,6 +115,7 @@
  CONFIG_HAVE_CLK=y
  CONFIG_HAVE_CLK_PREPARE=y
  CONFIG_HAVE_CONTEXT_TRACKING=y
@@ -97,7 +124,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_HAVE_C_RECORDMCOUNT=y
  CONFIG_HAVE_DEBUG_KMEMLEAK=y
  CONFIG_HAVE_DEBUG_STACKOVERFLOW=y
-@@ -118,12 +137,12 @@ CONFIG_HAVE_OPROFILE=y
+@@ -118,12 +139,12 @@
  CONFIG_HAVE_PERF_EVENTS=y
  CONFIG_HAVE_REGS_AND_STACK_ACCESS_API=y
  CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
@@ -111,7 +138,11 @@ index 0e06023780..35065db6bd 100644
  CONFIG_I2C_MT7621=y
  CONFIG_INITRAMFS_SOURCE=""
  CONFIG_IRQCHIP=y
-@@ -135,7 +154,9 @@ CONFIG_IRQ_WORK=y
+@@ -132,10 +153,14 @@
+ CONFIG_IRQ_FORCED_THREADING=y
+ CONFIG_IRQ_MIPS_CPU=y
+ CONFIG_IRQ_WORK=y
++# CONFIG_ISDN is not set
  CONFIG_LIBFDT=y
  CONFIG_LZO_COMPRESS=y
  CONFIG_LZO_DECOMPRESS=y
@@ -119,20 +150,25 @@ index 0e06023780..35065db6bd 100644
 +CONFIG_MDIO_BUS=y
 +CONFIG_MDIO_DEVICE=y
 +CONFIG_MDIO_I2C=y
++CONFIG_MFD_SYSCON=y
  CONFIG_MIPS=y
  CONFIG_MIPS_ASID_BITS=8
  CONFIG_MIPS_ASID_SHIFT=0
-@@ -185,13 +206,64 @@ CONFIG_MTD_UBI_BLOCK=y
+@@ -185,13 +210,68 @@
  CONFIG_MTD_UBI_WL_THRESHOLD=4096
  CONFIG_MTK_MTD_NAND=y
  CONFIG_NEED_DMA_MAP_STATE=y
 +# CONFIG_NET_CADENCE is not set
++CONFIG_NET_DSA=y
++CONFIG_NET_DSA_MT7530=y
++CONFIG_NET_DSA_TAG_MTK=y
  CONFIG_NET_FLOW_LIMIT=y
 -CONFIG_NET_MEDIATEK_GSW_MT7621=y
 -CONFIG_NET_MEDIATEK_MDIO=y
 -CONFIG_NET_MEDIATEK_MDIO_MT7620=y
 -CONFIG_NET_MEDIATEK_MT7621=y
  CONFIG_NET_MEDIATEK_SOC=y
++CONFIG_NET_SWITCHDEV=y
 +# CONFIG_NET_VENDOR_3COM is not set
 +# CONFIG_NET_VENDOR_ADAPTEC is not set
 +# CONFIG_NET_VENDOR_AGERE is not set
@@ -191,7 +227,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_NO_GENERIC_PCI_IOPORT_MAP=y
  # CONFIG_NO_IOPORT_MAP is not set
  CONFIG_NR_CPUS=4
-@@ -214,6 +286,7 @@ CONFIG_PCI_DRIVERS_LEGACY=y
+@@ -214,6 +294,7 @@
  CONFIG_PERF_USE_VMALLOC=y
  CONFIG_PGTABLE_LEVELS=2
  CONFIG_PHYLIB=y
@@ -199,7 +235,7 @@ index 0e06023780..35065db6bd 100644
  # CONFIG_PHY_RALINK_USB is not set
  CONFIG_PINCTRL=y
  CONFIG_PINCTRL_RT2880=y
-@@ -221,9 +294,12 @@ CONFIG_PINCTRL_RT2880=y
+@@ -221,12 +302,16 @@
  CONFIG_POWER_RESET=y
  CONFIG_POWER_RESET_GPIO=y
  CONFIG_POWER_SUPPLY=y
@@ -212,7 +248,11 @@ index 0e06023780..35065db6bd 100644
  CONFIG_RCU_STALL_COMMON=y
  CONFIG_REGMAP=y
  CONFIG_REGMAP_I2C=y
-@@ -244,6 +320,7 @@ CONFIG_SCHED_SMT=y
++CONFIG_REGMAP_MMIO=y
+ CONFIG_REGMAP_SPI=y
+ CONFIG_REGULATOR=y
+ CONFIG_REGULATOR_FIXED_VOLTAGE=y
+@@ -244,6 +329,7 @@
  CONFIG_SERIAL_8250_NR_UARTS=3
  CONFIG_SERIAL_8250_RUNTIME_UARTS=3
  CONFIG_SERIAL_OF_PLATFORM=y
@@ -220,7 +260,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_SMP=y
  CONFIG_SMP_UP=y
  # CONFIG_SOC_MT7620 is not set
-@@ -256,8 +333,8 @@ CONFIG_SPI_MASTER=y
+@@ -256,8 +342,8 @@
  CONFIG_SPI_MT7621=y
  # CONFIG_SPI_RT2880 is not set
  CONFIG_SRCU=y
@@ -230,7 +270,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_SWPHY=y
  CONFIG_SYNC_R4K=y
  CONFIG_SYSCTL_EXCEPTION_TRACE=y
-@@ -275,7 +352,10 @@ CONFIG_SYS_SUPPORTS_MULTITHREADING=y
+@@ -275,7 +361,10 @@
  CONFIG_SYS_SUPPORTS_SCHED_SMT=y
  CONFIG_SYS_SUPPORTS_SMP=y
  CONFIG_TICK_CPU_ACCOUNTING=y
@@ -241,7 +281,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_UBIFS_FS=y
  CONFIG_UBIFS_FS_ADVANCED_COMPR=y
  CONFIG_UBIFS_FS_LZO=y
-@@ -284,6 +364,7 @@ CONFIG_USB_SUPPORT=y
+@@ -284,6 +373,7 @@
  CONFIG_USE_OF=y
  CONFIG_WATCHDOG_CORE=y
  CONFIG_WEAK_ORDERING=y
@@ -249,9 +289,7 @@ index 0e06023780..35065db6bd 100644
  CONFIG_XPS=y
  CONFIG_ZLIB_DEFLATE=y
  CONFIG_ZLIB_INFLATE=y
-diff --git a/target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch b/target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch
-new file mode 100644
-index 0000000000..a09c7d1625
+unchanged:
 --- /dev/null
 +++ b/target/linux/ramips/patches-4.14/2000-Patches-for-mt7623-tree.patch
 @@ -0,0 +1,15561 @@
@@ -15816,9 +15854,7 @@ index 0000000000..a09c7d1625
 +-- 
 +2.17.1
 +
-diff --git a/target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch b/target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch
-new file mode 100644
-index 0000000000..904dfb30d7
+unchanged:
 --- /dev/null
 +++ b/target/linux/ramips/patches-4.14/2001-Adding-MT7621-basic-syscon-clock.patch
 @@ -0,0 +1,813 @@
@@ -16635,9 +16671,7 @@ index 0000000000..904dfb30d7
 +-- 
 +2.17.1
 +
-diff --git a/target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch b/target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch
-new file mode 100644
-index 0000000000..063630df01
+unchanged:
 --- /dev/null
 +++ b/target/linux/ramips/patches-4.14/2002-Adding-MT7621-DSA-support.patch
 @@ -0,0 +1,452 @@
@@ -17093,9 +17127,7 @@ index 0000000000..063630df01
 +-- 
 +2.17.1
 +
-diff --git a/target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch b/target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch
-new file mode 100644
-index 0000000000..45ec8094d4
+unchanged:
 --- /dev/null
 +++ b/target/linux/ramips/patches-4.14/2100-at803x-advertise-fiber-support.patch
 @@ -0,0 +1,99 @@
@@ -17198,6 +17230,3 @@ index 0000000000..45ec8094d4
 +-- 
 +2.17.1
 +
--- 
-2.20.1
-
